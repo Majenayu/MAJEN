@@ -1,0 +1,49 @@
+# Requirements: StudyStreak study tracker
+
+## Introduction
+A local tool for students to log study sessions and see totals and a daily streak,
+usable from a CLI and a local web page.
+
+## Requirement 1: Log a session
+**User story:** As a student, I want to log what I studied and for how long, so that I can track my effort.
+
+Acceptance criteria:
+1. WHEN the user adds a session with a subject and minutes THEN the system SHALL store it with a unique id and today's date.
+2. WHEN a date (YYYY-MM-DD) is provided THEN the system SHALL store that date instead of today.
+3. IF the subject is empty or only whitespace THEN the system SHALL reject it with an error.
+4. IF the subject is longer than 60 characters or the note longer than 200 characters THEN the system SHALL reject it.
+5. IF minutes is not an integer between 1 and 1440 THEN the system SHALL reject it.
+6. IF the date is invalid or in the future THEN the system SHALL reject it.
+
+## Requirement 2: View sessions
+**User story:** As a student, I want to list my sessions, so that I can review what I did.
+
+Acceptance criteria:
+1. WHEN the user lists sessions THEN the system SHALL return them newest date first.
+2. WHEN no sessions exist THEN the system SHALL return an empty list without error.
+
+## Requirement 3: Delete a session
+**User story:** As a student, I want to delete a mistaken entry.
+
+Acceptance criteria:
+1. WHEN the user deletes an existing id THEN the system SHALL remove it and persist the change.
+2. IF the id does not exist THEN the system SHALL report "not found" and change nothing.
+
+## Requirement 4: Stats and streak
+**User story:** As a student, I want totals and a streak, so that I stay motivated and spot neglected subjects.
+
+Acceptance criteria:
+1. The system SHALL report total minutes, session count, and minutes per subject (case-insensitive grouping, largest first).
+2. The streak SHALL be the number of consecutive days with at least one session, ending today, or ending yesterday if nothing is logged today yet.
+3. IF the most recent session is older than yesterday THEN the streak SHALL be 0.
+
+## Requirement 5: Persistence
+1. The system SHALL store data in a single JSON file at `STUDYSTREAK_DATA` or `~/.studystreak/data.json`.
+2. Writes SHALL be atomic so a crash cannot leave a half-written file.
+3. IF the file is missing THEN the system SHALL start with no sessions.
+
+## Requirement 6: Web UI
+1. WHEN the user runs `serve` THEN the system SHALL serve a page on 127.0.0.1 only.
+2. The page SHALL allow adding, listing, deleting sessions and show stats and streak.
+3. The JSON API SHALL return 400 with an error message for invalid input and 404 for unknown ids.
+4. User-provided text SHALL be rendered as text, never as HTML.

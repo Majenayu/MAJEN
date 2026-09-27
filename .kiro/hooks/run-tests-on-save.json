@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Run tests on save",
+      "trigger": "PostFileSave",
+      "description": "Runs the StudyStreak unittest suite whenever a Python file is saved.",
+      "matcher": "\\.py$",
+      "action": {
+        "type": "command",
+        "command": "python -m unittest discover -s tests -t . -q",
+        "timeout": 60
+      }
+    }
+  ]
+}
