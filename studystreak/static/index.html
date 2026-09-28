@@ -21,6 +21,8 @@
   th, td { text-align: left; padding: .4rem; border-bottom: 1px solid #ddd; }
   #msg { min-height: 1.4em; color: #b00020; }
   .bar { background: #5b2dd1; height: .6rem; border-radius: 3px; }
+  form.goal { grid-template-columns: 2fr 1fr 1fr; margin-top: .5rem; }
+  progress { width: 100%; height: 1rem; accent-color: #5b2dd1; }
   .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 </head>
@@ -34,6 +36,15 @@
     <div class="card"><span>Total</span><strong id="total">0</strong>minutes</div>
     <div class="card"><span>Sessions</span><strong id="count">0</strong>logged</div>
   </section>
+
+  <h2>This week</h2>
+  <p id="week-text">0 minutes this week (no goal set)</p>
+  <progress id="week-progress" max="100" value="0" aria-labelledby="week-text" hidden></progress>
+  <form id="goal" class="goal">
+    <label>Weekly goal (minutes) <input name="minutes" type="number" min="1" max="10080"></label>
+    <button type="submit">Set goal</button>
+    <button type="button" id="clear-goal">Clear goal</button>
+  </form>
 
   <h2>Log a session</h2>
   <form id="add">
@@ -73,6 +84,15 @@
     $("total").textContent = stats.total_minutes;
     $("count").textContent = stats.sessions;
 
+    const wk = stats.week, bar = $("week-progress");
+    if (wk.goal) {
+      $("week-text").textContent = `${wk.minutes} of ${wk.goal} minutes this week (${wk.percent}%)`;
+      bar.value = wk.percent; bar.hidden = false;
+    } else {
+      $("week-text").textContent = `${wk.minutes} minutes this week (no goal set)`;
+      bar.hidden = true;
+    }
+
     const subj = $("subjects"); subj.replaceChildren();
     const max = Math.max(1, ...stats.by_subject.map(e => e.minutes));
     for (const e of stats.by_subject) {
@@ -110,6 +130,22 @@
       refresh();
     } catch (err) { $("msg").textContent = err.message; }
   });
+
+  async function setGoal(minutes) {
+    try {
+      await api("PUT", "/api/goal", { minutes });
+      $("msg").textContent = "";
+      $("goal").reset();
+      refresh();
+    } catch (err) { $("msg").textContent = err.message; }
+  }
+  $("goal").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const v = new FormData(ev.target).get("minutes");
+    if (!v) { $("msg").textContent = "Enter a goal in minutes, or use Clear goal."; return; }
+    setGoal(Number(v));
+  });
+  $("clear-goal").addEventListener("click", () => setGoal(null));
 
   refresh().catch(err => { $("msg").textContent = err.message; });
 </script>

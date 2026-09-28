@@ -12,6 +12,7 @@ from .store import Store, ValidationError
 
 HOST = "127.0.0.1"
 MAX_BODY = 10 * 1024
+MAX_DRAIN = 1024 * 1024  # never read more than this from a rejected request
 STATIC = Path(__file__).parent / "static" / "index.html"
 
 
@@ -52,21 +53,52 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
             else:
                 self._error(HTTPStatus.NOT_FOUND, "not found")
 
-        def do_POST(self) -> None:
-            if self.path != "/api/sessions":
-                return self._error(HTTPStatus.NOT_FOUND, "not found")
+        def _read_json_object(self) -> dict | None:
+            """Parse a JSON object body, or send a 400 and return None."""
             try:
                 length = int(self.headers.get("Content-Length", "0"))
             except ValueError:
-                return self._error(HTTPStatus.BAD_REQUEST, "invalid Content-Length")
+                self._error(HTTPStatus.BAD_REQUEST, "invalid Content-Length")
+                return None
             if length <= 0 or length > MAX_BODY:
-                return self._error(HTTPStatus.BAD_REQUEST, "body required, max 10 KB")
+                # Drain a bounded amount of the unread body so the client receives the
+                # 400 instead of a connection reset (seen on Windows), then close.
+                if 0 < length <= MAX_DRAIN:
+                    self.rfile.read(length)
+                self.close_connection = True
+                self._error(HTTPStatus.BAD_REQUEST, "body required, max 10 KB")
+                return None
             try:
                 data = json.loads(self.rfile.read(length))
             except (json.JSONDecodeError, UnicodeDecodeError):
-                return self._error(HTTPStatus.BAD_REQUEST, "body must be JSON")
+                self._error(HTTPStatus.BAD_REQUEST, "body must be JSON")
+                return None
             if not isinstance(data, dict):
-                return self._error(HTTPStatus.BAD_REQUEST, "body must be a JSON object")
+                self._error(HTTPStatus.BAD_REQUEST, "body must be a JSON object")
+                return None
+            return data
+
+        def do_PUT(self) -> None:
+            if self.path != "/api/goal":
+                return self._error(HTTPStatus.NOT_FOUND, "not found")
+            data = self._read_json_object()
+            if data is None:
+                return
+            if "minutes" not in data:
+                return self._error(HTTPStatus.BAD_REQUEST, "minutes is required (use null to clear)")
+            try:
+                with lock:
+                    goal = store.set_goal(data["minutes"])
+            except ValidationError as exc:
+                return self._error(HTTPStatus.BAD_REQUEST, str(exc))
+            self._json(HTTPStatus.OK, {"weekly_goal": goal})
+
+        def do_POST(self) -> None:
+            if self.path != "/api/sessions":
+                return self._error(HTTPStatus.NOT_FOUND, "not found")
+            data = self._read_json_object()
+            if data is None:
+                return
             try:
                 with lock:
                     s = store.add(data.get("subject"), data.get("minutes"),

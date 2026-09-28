@@ -25,3 +25,14 @@
 - [x] 4. Tooling
   - [x] 4.1 README with run instructions
   - [x] 4.2 Daily commit reminder script (reminds only, never commits)
+
+- [x] 5. Weekly goal
+  - [x] 5.1 `Store.set_goal`, persisted `weekly_goal`, `week` block in `stats`
+    - _Requirements: 7.1-7.4_
+  - [x] 5.2 Unit tests for goal validation, clearing, persistence, week boundaries
+  - [x] 5.3 `PUT /api/goal` route and API tests
+    - _Requirements: 7.1-7.3_
+  - [x] 5.4 CLI `goal` subcommand and weekly line in `stats`
+    - _Requirements: 7.5_
+  - [x] 5.5 Web UI goal form and progress bar
+    - _Requirements: 7.5_

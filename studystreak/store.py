@@ -11,6 +11,7 @@ from pathlib import Path
 MAX_SUBJECT = 60
 MAX_NOTE = 200
 MAX_MINUTES = 1440
+MAX_WEEKLY_GOAL = 7 * 1440
 FILE_VERSION = 1
 
 
@@ -93,6 +94,32 @@ def make_session(
                    date=day.isoformat(), note=note)
 
 
+def validate_goal(minutes: object) -> int | None:
+    """Return a valid weekly goal in minutes, or None to clear it."""
+    if minutes is None:
+        return None
+    if isinstance(minutes, bool):
+        raise ValidationError("goal must be a whole number of minutes")
+    if isinstance(minutes, str):
+        text = minutes.strip()
+        if text == "":
+            return None
+        try:
+            minutes = int(text)
+        except ValueError:
+            raise ValidationError("goal must be a whole number of minutes") from None
+    if not isinstance(minutes, int):
+        raise ValidationError("goal must be a whole number of minutes")
+    if not 1 <= minutes <= MAX_WEEKLY_GOAL:
+        raise ValidationError(f"goal must be between 1 and {MAX_WEEKLY_GOAL} minutes")
+    return minutes
+
+
+def week_start(day: date) -> date:
+    """Monday of the week containing `day`."""
+    return day - timedelta(days=day.weekday())
+
+
 def compute_streak(days: set[date], today: date) -> int:
     """Consecutive days with a session, ending today or yesterday."""
     if today in days:
@@ -112,22 +139,26 @@ class Store:
     def __init__(self, path: Path | str | None = None) -> None:
         self.path = Path(path) if path else default_path()
         self.sessions: list[Session] = []
+        self.weekly_goal: int | None = None
         self.load()
 
     def load(self) -> None:
         if not self.path.exists():
             self.sessions = []
+            self.weekly_goal = None
             return
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8-sig"))
             self.sessions = [Session(**s) for s in raw.get("sessions", [])]
-        except (json.JSONDecodeError, TypeError, AttributeError) as exc:
+            self.weekly_goal = validate_goal(raw.get("weekly_goal"))
+        except (json.JSONDecodeError, TypeError, AttributeError, ValidationError) as exc:
             raise StoreError(f"data file {self.path} is corrupt: {exc}") from exc
 
     def save(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(self.path.suffix + ".tmp")
-        payload = {"version": FILE_VERSION, "sessions": [asdict(s) for s in self.sessions]}
+        payload = {"version": FILE_VERSION, "sessions": [asdict(s) for s in self.sessions],
+                   "weekly_goal": self.weekly_goal}
         tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         os.replace(tmp, self.path)  # atomic on the same filesystem
 
@@ -149,6 +180,22 @@ class Store:
         self.save()
         return True
 
+    def set_goal(self, minutes: object) -> int | None:
+        """Set (or clear with None) the weekly goal. Invalid input leaves the old goal."""
+        self.weekly_goal = validate_goal(minutes)
+        self.save()
+        return self.weekly_goal
+
+    def week(self, today: date | None = None) -> dict:
+        today = today or date.today()
+        start = week_start(today)
+        end = start + timedelta(days=6)
+        minutes = sum(s.minutes for s in self.sessions
+                      if start <= date.fromisoformat(s.date) <= end)
+        goal = self.weekly_goal
+        percent = min(100, round(100 * minutes / goal)) if goal else None
+        return {"start": start.isoformat(), "minutes": minutes, "goal": goal, "percent": percent}
+
     def stats(self, today: date | None = None) -> dict:
         today = today or date.today()
         by_subject: dict[str, dict] = {}
@@ -163,4 +210,5 @@ class Store:
             "sessions": len(self.sessions),
             "by_subject": grouped,
             "streak": compute_streak(days, today),
+            "week": self.week(today),
         }

@@ -67,6 +67,21 @@ class ServerTests(unittest.TestCase):
         big = {"subject": "M", "minutes": 5, "note": "x" * 20000}
         self.assertEqual(self.request("POST", "/api/sessions", big)[0], 400)
 
+    def test_set_and_clear_goal(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 30})
+        status, body = self.request("PUT", "/api/goal", {"minutes": 120})
+        self.assertEqual((status, body), (200, {"weekly_goal": 120}))
+        week = self.request("GET", "/api/stats")[1]["week"]
+        self.assertEqual((week["minutes"], week["goal"], week["percent"]), (30, 120, 25))
+        status, body = self.request("PUT", "/api/goal", {"minutes": None})
+        self.assertEqual((status, body), (200, {"weekly_goal": None}))
+        self.assertIsNone(self.request("GET", "/api/stats")[1]["week"]["percent"])
+
+    def test_invalid_goal_is_400(self):
+        self.assertEqual(self.request("PUT", "/api/goal", {"minutes": 0})[0], 400)
+        self.assertEqual(self.request("PUT", "/api/goal", {})[0], 400)
+        self.assertEqual(self.request("PUT", "/api/nope", {"minutes": 5})[0], 404)
+
     def test_unknown_delete_and_path_are_404(self):
         self.assertEqual(self.request("DELETE", "/api/sessions/missing")[0], 404)
         self.assertEqual(self.request("GET", "/nope")[0], 404)

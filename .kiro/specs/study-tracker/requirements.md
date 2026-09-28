@@ -47,3 +47,13 @@ Acceptance criteria:
 2. The page SHALL allow adding, listing, deleting sessions and show stats and streak.
 3. The JSON API SHALL return 400 with an error message for invalid input and 404 for unknown ids.
 4. User-provided text SHALL be rendered as text, never as HTML.
+
+## Requirement 7: Weekly goal
+**User story:** As a student, I want to set a weekly study target in minutes, so that I can see whether I'm on track this week.
+
+Acceptance criteria:
+1. WHEN the user sets a goal between 1 and 10080 minutes THEN the system SHALL persist it.
+2. IF the goal is not a whole number in that range THEN the system SHALL reject it and keep the old goal.
+3. WHEN the user clears the goal THEN the system SHALL store no goal.
+4. Stats SHALL include this week's minutes (Monday to Sunday containing today), the goal, and percent of goal reached (capped at 100, null when no goal).
+5. The web page and CLI SHALL let the user set and clear the goal and SHALL show weekly progress.

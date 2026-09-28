@@ -11,7 +11,9 @@ Python 3.10+, standard library only.
 python -m studystreak add "Maths" 45 --note "calculus"
 python -m studystreak add "Physics" 30 --date 2026-09-25
 python -m studystreak list
-python -m studystreak stats
+python -m studystreak stats              # includes this week's progress
+python -m studystreak goal 300           # weekly goal in minutes
+python -m studystreak goal --clear
 python -m studystreak delete 02a799f8     # id or unique id prefix
 
 # Web UI at http://127.0.0.1:8765

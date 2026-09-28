@@ -20,7 +20,8 @@ class Session:
     date: str      # ISO YYYY-MM-DD, not in the future
     note: str = "" # 0..200 chars
 ```
-File format: `{"version": 1, "sessions": [ ...Session dicts... ]}`
+File format: `{"version": 1, "sessions": [ ...Session dicts... ], "weekly_goal": int | null}`
+(`weekly_goal` is optional; files without it load as no goal.)
 
 ## store.py
 - `ValidationError(ValueError)` for bad input.
@@ -37,7 +38,12 @@ File format: `{"version": 1, "sessions": [ ...Session dicts... ]}`
 | GET | /api/sessions | | `[Session]` |
 | POST | /api/sessions | `{subject, minutes, date?, note?}` | 201 `Session` / 400 `{error}` |
 | DELETE | /api/sessions/{id} | | 204 / 404 `{error}` |
-| GET | /api/stats | | `{total_minutes, sessions, by_subject, streak}` |
+| GET | /api/stats | | `{total_minutes, sessions, by_subject, streak, week}` |
+| PUT | /api/goal | `{minutes: int \| null}` | 200 `{weekly_goal}` / 400 `{error}` |
+
+`week` is `{start, minutes, goal, percent}`. `start` is the Monday of the current week;
+`percent` is `min(100, round(100 * minutes / goal))` or `null` when no goal is set.
+`Store.set_goal(minutes)` validates 1..10080 or `None` to clear.
 
 Request bodies are capped at 10 KB. Unknown paths return 404.
 

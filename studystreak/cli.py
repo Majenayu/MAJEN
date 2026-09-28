@@ -22,7 +22,12 @@ def build_parser() -> argparse.ArgumentParser:
     rm = sub.add_parser("delete", help="delete a session by id (or unique id prefix)")
     rm.add_argument("id")
 
-    sub.add_parser("stats", help="show totals and streak")
+    sub.add_parser("stats", help="show totals, streak and weekly progress")
+
+    goal = sub.add_parser("goal", help="set or clear the weekly goal in minutes")
+    grp = goal.add_mutually_exclusive_group(required=True)
+    grp.add_argument("minutes", nargs="?")
+    grp.add_argument("--clear", action="store_true")
 
     srv = sub.add_parser("serve", help="run the local web UI")
     srv.add_argument("--port", type=int, default=8765)
@@ -72,8 +77,22 @@ def main(argv: list[str] | None = None) -> int:
         st = store.stats()
         print(f"total: {st['total_minutes']} min across {st['sessions']} sessions")
         print(f"streak: {st['streak']} day(s)")
+        wk = st["week"]
+        if wk["goal"]:
+            print(f"this week: {wk['minutes']} / {wk['goal']} min ({wk['percent']}%)")
+        else:
+            print(f"this week: {wk['minutes']} min (no goal set)")
         for e in st["by_subject"]:
             print(f"  {e['subject']:<20} {e['minutes']:>5} min")
+        return 0
+
+    if args.command == "goal":
+        try:
+            g = store.set_goal(None if args.clear else args.minutes)
+        except ValidationError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+        print(f"weekly goal set to {g} min" if g else "weekly goal cleared")
         return 0
 
     if args.command == "serve":

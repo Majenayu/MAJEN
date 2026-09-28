@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from studystreak.store import (Store, StoreError, ValidationError, compute_streak,
-                               make_session)
+                               make_session, validate_goal, week_start)
 
 TODAY = date(2026, 9, 26)
 
@@ -123,6 +123,66 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(StoreError):
             Store(self.path)
         self.assertEqual(self.path.read_text(), "{not json")
+
+
+class GoalTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "data.json"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_validate_goal(self):
+        self.assertEqual(validate_goal(300), 300)
+        self.assertEqual(validate_goal(" 60 "), 60)
+        self.assertEqual(validate_goal(10080), 10080)
+        self.assertIsNone(validate_goal(None))
+        self.assertIsNone(validate_goal(""))
+        for bad in [0, -5, 10081, 2.5, "lots", True]:
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
+                validate_goal(bad)
+
+    def test_week_start_is_monday(self):
+        self.assertEqual(week_start(TODAY), date(2026, 9, 21))       # Saturday -> Monday
+        self.assertEqual(week_start(date(2026, 9, 21)), date(2026, 9, 21))
+        self.assertEqual(week_start(date(2026, 9, 27)), date(2026, 9, 21))  # Sunday
+
+    def test_set_goal_persists_and_clears(self):
+        store = Store(self.path)
+        store.set_goal(300)
+        self.assertEqual(Store(self.path).weekly_goal, 300)
+        store.set_goal(None)
+        self.assertIsNone(Store(self.path).weekly_goal)
+
+    def test_invalid_goal_keeps_old_goal(self):
+        store = Store(self.path)
+        store.set_goal(300)
+        with self.assertRaises(ValidationError):
+            store.set_goal(0)
+        self.assertEqual(store.weekly_goal, 300)
+        self.assertEqual(Store(self.path).weekly_goal, 300)
+
+    def test_week_progress_counts_only_this_week(self):
+        store = Store(self.path)
+        store.add("Maths", 60, "2026-09-20", today=TODAY)   # previous Sunday, excluded
+        store.add("Maths", 90, "2026-09-21", today=TODAY)   # Monday, included
+        store.add("AIML", 30, "2026-09-26", today=TODAY)    # today, included
+        self.assertEqual(store.week(TODAY),
+                         {"start": "2026-09-21", "minutes": 120, "goal": None, "percent": None})
+        store.set_goal(300)
+        self.assertEqual(store.stats(TODAY)["week"]["percent"], 40)
+        store.set_goal(100)
+        self.assertEqual(store.week(TODAY)["percent"], 100)  # capped
+
+    def test_old_file_without_goal_loads(self):
+        self.path.write_text('{"version": 1, "sessions": []}')
+        self.assertIsNone(Store(self.path).weekly_goal)
+
+    def test_corrupt_goal_in_file_raises(self):
+        self.path.write_text('{"version": 1, "sessions": [], "weekly_goal": -3}')
+        with self.assertRaises(StoreError):
+            Store(self.path)
 
 
 if __name__ == "__main__":
