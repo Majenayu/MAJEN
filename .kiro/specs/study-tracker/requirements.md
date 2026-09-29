@@ -66,3 +66,11 @@ Acceptance criteria:
 2. Commas, quotes and newlines in text SHALL be escaped per standard CSV rules.
 3. IF a subject or note starts with `=`, `+`, `-`, `@`, tab or carriage return THEN the system SHALL prefix it with `'` to prevent spreadsheet formula injection.
 4. The CLI SHALL print CSV to stdout or write it to a file with `--out`; the web page SHALL offer a download link.
+
+## Requirement 9: Longest streak
+**User story:** As a student, I want to see my best-ever streak, so that a broken streak doesn't erase my progress.
+
+Acceptance criteria:
+1. Stats SHALL include `longest_streak`: the longest run of consecutive days with a session, at any time.
+2. WHEN there are no sessions THEN `longest_streak` SHALL be 0.
+3. The CLI `stats` output and the web page SHALL show it.

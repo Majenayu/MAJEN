@@ -45,3 +45,9 @@
     - _Requirements: 8.4_
   - [x] 6.4 CLI `export [--out FILE]` and web download link
     - _Requirements: 8.4_
+
+- [x] 7. Longest streak
+  - [x] 7.1 `compute_longest_streak` and `longest_streak` in stats, with unit tests
+    - _Requirements: 9.1, 9.2_
+  - [x] 7.2 Show it in CLI `stats` and a web card
+    - _Requirements: 9.3_

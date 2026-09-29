@@ -79,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "stats":
         st = store.stats()
         print(f"total: {st['total_minutes']} min across {st['sessions']} sessions")
-        print(f"streak: {st['streak']} day(s)")
+        print(f"streak: {st['streak']} day(s)  (longest: {st['longest_streak']})")
         wk = st["week"]
         if wk["goal"]:
             print(f"this week: {wk['minutes']} / {wk['goal']} min ({wk['percent']}%)")

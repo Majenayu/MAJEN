@@ -33,6 +33,7 @@
 
   <section class="cards" aria-label="Summary">
     <div class="card"><span>Streak</span><strong id="streak">0</strong>days</div>
+    <div class="card"><span>Longest streak</span><strong id="longest">0</strong>days</div>
     <div class="card"><span>Total</span><strong id="total">0</strong>minutes</div>
     <div class="card"><span>Sessions</span><strong id="count">0</strong>logged</div>
   </section>
@@ -82,6 +83,7 @@
   async function refresh() {
     const [sessions, stats] = await Promise.all([api("GET", "/api/sessions"), api("GET", "/api/stats")]);
     $("streak").textContent = stats.streak;
+    $("longest").textContent = stats.longest_streak;
     $("total").textContent = stats.total_minutes;
     $("count").textContent = stats.sessions;
 

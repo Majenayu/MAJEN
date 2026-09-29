@@ -156,6 +156,19 @@ def compute_streak(days: set[date], today: date) -> int:
     return streak
 
 
+def compute_longest_streak(days: set[date]) -> int:
+    """Longest run of consecutive days with at least one session, at any time."""
+    best = 0
+    for d in days:
+        if d - timedelta(days=1) in days:
+            continue  # not the start of a run
+        length = 1
+        while d + timedelta(days=length) in days:
+            length += 1
+        best = max(best, length)
+    return best
+
+
 class Store:
     def __init__(self, path: Path | str | None = None) -> None:
         self.path = Path(path) if path else default_path()
@@ -235,5 +248,6 @@ class Store:
             "sessions": len(self.sessions),
             "by_subject": grouped,
             "streak": compute_streak(days, today),
+            "longest_streak": compute_longest_streak(days),
             "week": self.week(today),
         }

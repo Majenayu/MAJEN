@@ -4,8 +4,8 @@ import unittest
 from datetime import date, timedelta
 from pathlib import Path
 
-from studystreak.store import (Store, StoreError, ValidationError, compute_streak,
-                               make_session, validate_goal, week_start)
+from studystreak.store import (Store, StoreError, ValidationError, compute_longest_streak,
+                               compute_streak, make_session, validate_goal, week_start)
 
 TODAY = date(2026, 9, 26)
 
@@ -65,6 +65,20 @@ class StreakTests(unittest.TestCase):
 
     def test_stale_is_zero(self):
         self.assertEqual(compute_streak(self.days(2, 3), TODAY), 0)
+
+    def test_longest_streak(self):
+        self.assertEqual(compute_longest_streak(set()), 0)
+        self.assertEqual(compute_longest_streak(self.days(0)), 1)
+        # runs: 0-1 (2 days) and 5-8 (4 days); the older run is longer
+        self.assertEqual(compute_longest_streak(self.days(0, 1, 5, 6, 7, 8)), 4)
+
+    def test_longest_streak_in_stats_survives_broken_current_streak(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Store(Path(tmp) / "d.json")
+            for d in ["2026-09-10", "2026-09-11", "2026-09-12"]:
+                store.add("Maths", 10, d, today=TODAY)
+            st = store.stats(today=TODAY)
+            self.assertEqual((st["streak"], st["longest_streak"]), (0, 3))
 
 
 class StoreTests(unittest.TestCase):
