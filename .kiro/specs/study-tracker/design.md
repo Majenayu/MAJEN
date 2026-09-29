@@ -35,7 +35,8 @@ File format: `{"version": 1, "sessions": [ ...Session dicts... ], "weekly_goal":
 | Method | Path | Body | Response |
 |---|---|---|---|
 | GET | / | | index.html |
-| GET | /api/sessions | | `[Session]` |
+| GET | /api/sessions?subject= | | `[Session]` (optional case-insensitive subject filter) |
+| GET | /api/subjects | | `[string]` distinct subjects |
 | POST | /api/sessions | `{subject, minutes, date?, note?}` | 201 `Session` / 400 `{error}` |
 | DELETE | /api/sessions/{id} | | 204 / 404 `{error}` |
 | GET | /api/stats | | `{total_minutes, sessions, by_subject, streak, longest_streak, week}` |

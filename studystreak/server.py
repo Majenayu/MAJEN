@@ -7,6 +7,7 @@ from dataclasses import asdict
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import parse_qs, urlsplit
 
 from .store import Store, ValidationError
 
@@ -35,7 +36,9 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
             self._json(status, {"error": message})
 
         def do_GET(self) -> None:
-            if self.path == "/":
+            url = urlsplit(self.path)
+            path = url.path
+            if path == "/":
                 body = STATIC.read_bytes()
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -44,10 +47,14 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
                                  "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'")
                 self.end_headers()
                 self.wfile.write(body)
-            elif self.path == "/api/sessions":
+            elif path == "/api/sessions":
+                subject = parse_qs(url.query).get("subject", [None])[0]
                 with lock:
-                    self._json(HTTPStatus.OK, [asdict(s) for s in store.list()])
-            elif self.path == "/api/export.csv":
+                    self._json(HTTPStatus.OK, [asdict(s) for s in store.list(subject)])
+            elif path == "/api/subjects":
+                with lock:
+                    self._json(HTTPStatus.OK, store.subjects())
+            elif path == "/api/export.csv":
                 with lock:
                     body = store.export_csv().encode("utf-8")
                 self.send_response(HTTPStatus.OK)
@@ -56,7 +63,7 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
-            elif self.path == "/api/stats":
+            elif path == "/api/stats":
                 with lock:
                     self._json(HTTPStatus.OK, store.stats())
             else:

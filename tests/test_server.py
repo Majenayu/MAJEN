@@ -67,6 +67,14 @@ class ServerTests(unittest.TestCase):
         big = {"subject": "M", "minutes": 5, "note": "x" * 20000}
         self.assertEqual(self.request("POST", "/api/sessions", big)[0], 400)
 
+    def test_filter_sessions_and_subjects(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
+        self.request("POST", "/api/sessions", {"subject": "AI ML", "minutes": 30})
+        status, items = self.request("GET", "/api/sessions?subject=ai%20ml")
+        self.assertEqual((status, [i["subject"] for i in items]), (200, ["AI ML"]))
+        self.assertEqual(self.request("GET", "/api/subjects")[1], ["AI ML", "Maths"])
+        self.assertEqual(len(self.request("GET", "/api/sessions?x=1")[1]), 2)
+
     def test_export_csv(self):
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
         with urllib.request.urlopen(self.base + "/api/export.csv") as res:

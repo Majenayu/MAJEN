@@ -51,3 +51,11 @@
     - _Requirements: 9.1, 9.2_
   - [x] 7.2 Show it in CLI `stats` and a web card
     - _Requirements: 9.3_
+
+- [x] 8. Subject filter
+  - [x] 8.1 `Store.list(subject)` and `Store.subjects()`, with unit tests
+    - _Requirements: 10.1-10.3_
+  - [x] 8.2 `GET /api/sessions?subject=` and `GET /api/subjects`, with API tests
+    - _Requirements: 10.1-10.3_
+  - [x] 8.3 CLI `list --subject` and web dropdown
+    - _Requirements: 10.4_

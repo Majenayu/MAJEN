@@ -63,6 +63,9 @@
 
   <h2>Sessions</h2>
   <p><a href="/api/export.csv" download>Download all sessions as CSV</a></p>
+  <label>Filter by subject
+    <select id="filter"><option value="">All subjects</option></select>
+  </label>
   <table><thead><tr><th scope="col">Date</th><th scope="col">Subject</th><th scope="col">Minutes</th><th scope="col">Note</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
     <tbody id="sessions"></tbody></table>
 </main>
@@ -81,7 +84,15 @@
   }
 
   async function refresh() {
-    const [sessions, stats] = await Promise.all([api("GET", "/api/sessions"), api("GET", "/api/stats")]);
+    const chosen = $("filter").value;
+    const q = chosen ? "?subject=" + encodeURIComponent(chosen) : "";
+    const [sessions, stats, subjects] = await Promise.all([
+      api("GET", "/api/sessions" + q), api("GET", "/api/stats"), api("GET", "/api/subjects")]);
+
+    const sel = $("filter");
+    sel.replaceChildren(new Option("All subjects", ""));
+    for (const name of subjects) sel.appendChild(new Option(name, name));
+    sel.value = subjects.includes(chosen) ? chosen : "";
     $("streak").textContent = stats.streak;
     $("longest").textContent = stats.longest_streak;
     $("total").textContent = stats.total_minutes;
@@ -149,6 +160,7 @@
     setGoal(Number(v));
   });
   $("clear-goal").addEventListener("click", () => setGoal(null));
+  $("filter").addEventListener("change", () => refresh().catch(err => { $("msg").textContent = err.message; }));
 
   refresh().catch(err => { $("msg").textContent = err.message; });
 </script>

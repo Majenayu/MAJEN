@@ -203,8 +203,20 @@ class Store:
         self.save()
         return session
 
-    def list(self) -> list[Session]:
-        return sorted(self.sessions, key=lambda s: s.date, reverse=True)
+    def list(self, subject: str | None = None) -> list[Session]:
+        """Sessions newest date first, optionally only one subject (case-insensitive)."""
+        items = self.sessions
+        if subject and subject.strip():
+            key = subject.strip().casefold()
+            items = [s for s in items if s.subject.casefold() == key]
+        return sorted(items, key=lambda s: s.date, reverse=True)
+
+    def subjects(self) -> list[str]:
+        """Distinct subject names (first spelling seen), sorted case-insensitively."""
+        seen: dict[str, str] = {}
+        for s in self.sessions:
+            seen.setdefault(s.subject.casefold(), s.subject)
+        return sorted(seen.values(), key=str.casefold)
 
     def delete(self, session_id: str) -> bool:
         before = len(self.sessions)

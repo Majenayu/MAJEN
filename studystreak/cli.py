@@ -17,7 +17,8 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--date", help="YYYY-MM-DD, defaults to today")
     add.add_argument("--note", default="")
 
-    sub.add_parser("list", help="list sessions, newest first")
+    ls = sub.add_parser("list", help="list sessions, newest first")
+    ls.add_argument("--subject", help="only show this subject (case-insensitive)")
 
     rm = sub.add_parser("delete", help="delete a session by id (or unique id prefix)")
     rm.add_argument("id")
@@ -60,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "list":
-        sessions = store.list()
+        sessions = store.list(args.subject)
         if not sessions:
             print("no sessions yet")
         for s in sessions:

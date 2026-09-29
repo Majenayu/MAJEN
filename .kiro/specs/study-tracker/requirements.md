@@ -74,3 +74,12 @@ Acceptance criteria:
 1. Stats SHALL include `longest_streak`: the longest run of consecutive days with a session, at any time.
 2. WHEN there are no sessions THEN `longest_streak` SHALL be 0.
 3. The CLI `stats` output and the web page SHALL show it.
+
+## Requirement 10: Filter by subject
+**User story:** As a student, I want to see sessions for one subject, so that I can review a single course.
+
+Acceptance criteria:
+1. WHEN a subject filter is given THEN the system SHALL list only sessions with that subject, case-insensitively, newest first.
+2. WHEN the filter is empty THEN the system SHALL list all sessions.
+3. The system SHALL expose the distinct subject names for building a filter control.
+4. The CLI `list --subject` and a web dropdown SHALL apply the filter.
