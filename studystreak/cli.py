@@ -25,6 +25,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("stats", help="show totals, streak and weekly progress")
 
+    demo = sub.add_parser("demo", help="fill an empty store with sample data for demos")
+    demo.add_argument("--days", type=int, default=14)
+
     exp = sub.add_parser("export", help="export sessions as CSV")
     exp.add_argument("--out", help="file to write; prints to stdout if omitted")
 
@@ -88,6 +91,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"this week: {wk['minutes']} min (no goal set)")
         for e in st["by_subject"]:
             print(f"  {e['subject']:<20} {e['minutes']:>5} min")
+        return 0
+
+    if args.command == "demo":
+        try:
+            n = store.seed_demo(days=args.days)
+        except ValidationError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            print("tip: point STUDYSTREAK_DATA at a new file to keep demo data separate",
+                  file=sys.stderr)
+            return 2
+        print(f"added {n} demo session(s) to {store.path}")
         return 0
 
     if args.command == "export":

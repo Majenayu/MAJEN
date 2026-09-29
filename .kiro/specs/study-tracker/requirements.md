@@ -83,3 +83,11 @@ Acceptance criteria:
 2. WHEN the filter is empty THEN the system SHALL list all sessions.
 3. The system SHALL expose the distinct subject names for building a filter control.
 4. The CLI `list --subject` and a web dropdown SHALL apply the filter.
+
+## Requirement 11: Demo data
+**User story:** As a presenter, I want to fill the app with sample sessions, so that I can demo it without typing entries.
+
+Acceptance criteria:
+1. WHEN the user runs `demo` on an empty store THEN the system SHALL add sample sessions across several subjects over recent days, with gaps, and set a weekly goal.
+2. IF the store already has sessions THEN the system SHALL refuse and change nothing.
+3. IF `--days` is outside 1..60 THEN the system SHALL reject it.

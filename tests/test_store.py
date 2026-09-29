@@ -178,6 +178,36 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(sorted(cells), sorted(["'=HYPERLINK(\"x\")", "'+cmd", "'-dash", "'@sum"]))
 
 
+class DemoTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self.tmp.name) / "data.json"
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_seed_demo_populates_empty_store(self):
+        store = Store(self.path)
+        self.assertEqual(store.seed_demo(today=TODAY, days=14), 12)
+        st = Store(self.path).stats(today=TODAY)
+        self.assertEqual(st["sessions"], 12)
+        self.assertEqual((st["streak"], st["longest_streak"]), (4, 4))
+        self.assertEqual(st["week"]["goal"], 300)
+        self.assertEqual(len(store.subjects()), 4)
+
+    def test_seed_demo_refuses_non_empty_store(self):
+        store = Store(self.path)
+        real = store.add("Maths", 10, today=TODAY)
+        with self.assertRaises(ValidationError):
+            store.seed_demo(today=TODAY)
+        self.assertEqual(Store(self.path).sessions, [real])
+
+    def test_seed_demo_rejects_bad_days(self):
+        for bad in [0, 61]:
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
+                Store(self.path).seed_demo(today=TODAY, days=bad)
+
+
 class GoalTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

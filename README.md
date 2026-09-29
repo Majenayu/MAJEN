@@ -10,7 +10,7 @@ Python 3.10+, standard library only.
 # CLI
 python -m studystreak add "Maths" 45 --note "calculus"
 python -m studystreak add "Physics" 30 --date 2026-09-25
-python -m studystreak list
+python -m studystreak list --subject maths  # optional filter
 python -m studystreak stats              # includes this week's progress
 python -m studystreak goal 300           # weekly goal in minutes
 python -m studystreak goal --clear
@@ -20,6 +20,16 @@ python -m studystreak delete 02a799f8     # id or unique id prefix
 # Web UI at http://127.0.0.1:8765
 python -m studystreak serve
 ```
+
+### Demo with sample data
+
+```powershell
+$env:STUDYSTREAK_DATA = "$env:TEMP\studystreak-demo.json"   # keep demo data separate
+python -m studystreak demo
+python -m studystreak serve
+```
+
+`demo` only works on an empty store, so it never mixes with your real sessions.
 
 Data lives in `~/.studystreak/data.json`, or wherever `STUDYSTREAK_DATA` points.
 The web server binds to 127.0.0.1 only and has no authentication, so don't expose it.

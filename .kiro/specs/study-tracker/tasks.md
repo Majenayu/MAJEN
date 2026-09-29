@@ -59,3 +59,9 @@
     - _Requirements: 10.1-10.3_
   - [x] 8.3 CLI `list --subject` and web dropdown
     - _Requirements: 10.4_
+
+- [x] 9. Demo data
+  - [x] 9.1 `Store.seed_demo` (empty store only), with unit tests
+    - _Requirements: 11.1-11.3_
+  - [x] 9.2 CLI `demo [--days N]` and README demo instructions
+    - _Requirements: 11.1_

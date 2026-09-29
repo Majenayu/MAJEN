@@ -226,6 +226,32 @@ class Store:
         self.save()
         return True
 
+    def seed_demo(self, today: date | None = None, days: int = 14) -> int:
+        """Fill an EMPTY store with sample sessions for demos. Returns sessions added.
+
+        Refuses to touch a store that already has data so real history is never mixed
+        with sample data.
+        """
+        if self.sessions:
+            raise ValidationError("demo data can only be added to an empty store")
+        if not 1 <= days <= 60:
+            raise ValidationError("days must be between 1 and 60")
+        today = today or date.today()
+        subjects = ["Maths", "Physics", "AIML", "English"]
+        added = 0
+        for offset in range(days):
+            if offset in (4, 9):  # leave gaps so current and longest streak differ
+                continue
+            day = today - timedelta(days=offset)
+            subject = subjects[offset % len(subjects)]
+            minutes = 20 + (offset * 7) % 50
+            self.sessions.append(make_session(subject, minutes, day.isoformat(),
+                                              "demo", today=today))
+            added += 1
+        self.weekly_goal = 300
+        self.save()
+        return added
+
     def export_csv(self) -> str:
         """All sessions as CSV, newest date first."""
         return sessions_to_csv(self.list())
