@@ -24,6 +24,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("stats", help="show totals, streak and weekly progress")
 
+    exp = sub.add_parser("export", help="export sessions as CSV")
+    exp.add_argument("--out", help="file to write; prints to stdout if omitted")
+
     goal = sub.add_parser("goal", help="set or clear the weekly goal in minutes")
     grp = goal.add_mutually_exclusive_group(required=True)
     grp.add_argument("minutes", nargs="?")
@@ -84,6 +87,17 @@ def main(argv: list[str] | None = None) -> int:
             print(f"this week: {wk['minutes']} min (no goal set)")
         for e in st["by_subject"]:
             print(f"  {e['subject']:<20} {e['minutes']:>5} min")
+        return 0
+
+    if args.command == "export":
+        text = store.export_csv()
+        if args.out:
+            # utf-8-sig so Excel detects the encoding correctly.
+            with open(args.out, "w", encoding="utf-8-sig", newline="") as fh:
+                fh.write(text)
+            print(f"exported {len(store.sessions)} session(s) to {args.out}")
+        else:
+            sys.stdout.write(text)
         return 0
 
     if args.command == "goal":

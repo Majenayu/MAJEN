@@ -39,6 +39,7 @@ File format: `{"version": 1, "sessions": [ ...Session dicts... ], "weekly_goal":
 | POST | /api/sessions | `{subject, minutes, date?, note?}` | 201 `Session` / 400 `{error}` |
 | DELETE | /api/sessions/{id} | | 204 / 404 `{error}` |
 | GET | /api/stats | | `{total_minutes, sessions, by_subject, streak, week}` |
+| GET | /api/export.csv | | 200 `text/csv` attachment (`Store.export_csv`) |
 | PUT | /api/goal | `{minutes: int \| null}` | 200 `{weekly_goal}` / 400 `{error}` |
 
 `week` is `{start, minutes, goal, percent}`. `start` is the Monday of the current week;

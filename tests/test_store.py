@@ -125,6 +125,35 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(self.path.read_text(), "{not json")
 
 
+class ExportTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = Store(Path(self.tmp.name) / "data.json")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def rows(self):
+        import csv as _csv
+        return list(_csv.reader(self.store.export_csv().splitlines()))
+
+    def test_empty_export_has_header_only(self):
+        self.assertEqual(self.rows(), [["date", "subject", "minutes", "note", "id"]])
+
+    def test_export_newest_first_and_escapes_commas_quotes(self):
+        self.store.add("Maths", 30, "2026-09-20", 'limits, "epsilon"', today=TODAY)
+        s = self.store.add("AIML", 45, "2026-09-25", today=TODAY)
+        rows = self.rows()
+        self.assertEqual(rows[1], ["2026-09-25", "AIML", "45", "", s.id])
+        self.assertEqual(rows[2][3], 'limits, "epsilon"')
+
+    def test_formula_injection_is_neutralised(self):
+        self.store.add("=HYPERLINK(\"x\")", 10, note="+cmd", today=TODAY)
+        self.store.add("-dash", 10, note="@sum", today=TODAY)
+        cells = [c for row in self.rows()[1:] for c in row[1:4:2]]
+        self.assertEqual(sorted(cells), sorted(["'=HYPERLINK(\"x\")", "'+cmd", "'-dash", "'@sum"]))
+
+
 class GoalTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

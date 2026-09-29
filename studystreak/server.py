@@ -47,6 +47,15 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
             elif self.path == "/api/sessions":
                 with lock:
                     self._json(HTTPStatus.OK, [asdict(s) for s in store.list()])
+            elif self.path == "/api/export.csv":
+                with lock:
+                    body = store.export_csv().encode("utf-8")
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "text/csv; charset=utf-8")
+                self.send_header("Content-Disposition", 'attachment; filename="studystreak.csv"')
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
             elif self.path == "/api/stats":
                 with lock:
                     self._json(HTTPStatus.OK, store.stats())

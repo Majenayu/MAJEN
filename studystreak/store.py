@@ -1,6 +1,8 @@
 """Session model, validation, JSON persistence, stats and streak logic."""
 from __future__ import annotations
 
+import csv
+import io
 import json
 import os
 import uuid
@@ -120,6 +122,25 @@ def week_start(day: date) -> date:
     return day - timedelta(days=day.weekday())
 
 
+CSV_FIELDS = ["date", "subject", "minutes", "note", "id"]
+_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: str) -> str:
+    """Neutralise spreadsheet formula injection by prefixing risky cells with a quote."""
+    return "'" + value if value.startswith(_FORMULA_PREFIXES) else value
+
+
+def sessions_to_csv(sessions: list[Session]) -> str:
+    """Render sessions as CSV text with a header row."""
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(CSV_FIELDS)
+    for s in sessions:
+        writer.writerow([s.date, _csv_safe(s.subject), s.minutes, _csv_safe(s.note), s.id])
+    return buf.getvalue()
+
+
 def compute_streak(days: set[date], today: date) -> int:
     """Consecutive days with a session, ending today or yesterday."""
     if today in days:
@@ -179,6 +200,10 @@ class Store:
             return False
         self.save()
         return True
+
+    def export_csv(self) -> str:
+        """All sessions as CSV, newest date first."""
+        return sessions_to_csv(self.list())
 
     def set_goal(self, minutes: object) -> int | None:
         """Set (or clear with None) the weekly goal. Invalid input leaves the old goal."""

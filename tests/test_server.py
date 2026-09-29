@@ -67,6 +67,16 @@ class ServerTests(unittest.TestCase):
         big = {"subject": "M", "minutes": 5, "note": "x" * 20000}
         self.assertEqual(self.request("POST", "/api/sessions", big)[0], 400)
 
+    def test_export_csv(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
+        with urllib.request.urlopen(self.base + "/api/export.csv") as res:
+            self.assertEqual(res.status, 200)
+            self.assertTrue(res.headers["Content-Type"].startswith("text/csv"))
+            self.assertIn("attachment", res.headers["Content-Disposition"])
+            lines = res.read().decode().splitlines()
+        self.assertEqual(lines[0], "date,subject,minutes,note,id")
+        self.assertIn("Maths,20", lines[1])
+
     def test_set_and_clear_goal(self):
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 30})
         status, body = self.request("PUT", "/api/goal", {"minutes": 120})

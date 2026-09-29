@@ -36,3 +36,12 @@
     - _Requirements: 7.5_
   - [x] 5.5 Web UI goal form and progress bar
     - _Requirements: 7.5_
+
+- [x] 6. CSV export
+  - [x] 6.1 `sessions_to_csv` with formula-injection guard and `Store.export_csv`
+    - _Requirements: 8.1-8.3_
+  - [x] 6.2 Unit tests for header, ordering, escaping, injection guard
+  - [x] 6.3 `GET /api/export.csv` route and API test
+    - _Requirements: 8.4_
+  - [x] 6.4 CLI `export [--out FILE]` and web download link
+    - _Requirements: 8.4_
