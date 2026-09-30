@@ -65,3 +65,11 @@
     - _Requirements: 11.1-11.3_
   - [x] 9.2 CLI `demo [--days N]` and README demo instructions
     - _Requirements: 11.1_
+
+- [x] 10. Edit a session
+  - [x] 10.1 `Store.update` with field allow-list and re-validation, with unit tests
+    - _Requirements: 12.1-12.4_
+  - [x] 10.2 `PATCH /api/sessions/{id}` with API tests
+    - _Requirements: 12.1-12.4_
+  - [x] 10.3 CLI `edit` and web Edit / Cancel edit buttons
+    - _Requirements: 12.5_

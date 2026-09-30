@@ -123,6 +123,22 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
                 return self._error(HTTPStatus.BAD_REQUEST, str(exc))
             self._json(HTTPStatus.CREATED, asdict(s))
 
+        def do_PATCH(self) -> None:
+            prefix = "/api/sessions/"
+            if not self.path.startswith(prefix) or len(self.path) == len(prefix):
+                return self._error(HTTPStatus.NOT_FOUND, "not found")
+            data = self._read_json_object()
+            if data is None:
+                return
+            try:
+                with lock:
+                    s = store.update(self.path[len(prefix):], data)
+            except ValidationError as exc:
+                return self._error(HTTPStatus.BAD_REQUEST, str(exc))
+            if s is None:
+                return self._error(HTTPStatus.NOT_FOUND, "session not found")
+            self._json(HTTPStatus.OK, asdict(s))
+
         def do_DELETE(self) -> None:
             prefix = "/api/sessions/"
             if not self.path.startswith(prefix) or len(self.path) == len(prefix):

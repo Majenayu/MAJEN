@@ -75,6 +75,20 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request("GET", "/api/subjects")[1], ["AI ML", "Maths"])
         self.assertEqual(len(self.request("GET", "/api/sessions?x=1")[1]), 2)
 
+    def test_patch_session(self):
+        _, s = self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
+        status, body = self.request("PATCH", f"/api/sessions/{s['id']}",
+                                    {"subject": "Physics", "minutes": 35})
+        self.assertEqual((status, body["id"], body["subject"], body["minutes"]),
+                         (200, s["id"], "Physics", 35))
+        self.assertEqual(self.request("GET", "/api/stats")[1]["total_minutes"], 35)
+
+    def test_patch_errors(self):
+        _, s = self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
+        self.assertEqual(self.request("PATCH", f"/api/sessions/{s['id']}", {"minutes": -1})[0], 400)
+        self.assertEqual(self.request("PATCH", f"/api/sessions/{s['id']}", {"id": "x"})[0], 400)
+        self.assertEqual(self.request("PATCH", "/api/sessions/missing", {"minutes": 5})[0], 404)
+
     def test_export_csv(self):
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
         with urllib.request.urlopen(self.base + "/api/export.csv") as res:

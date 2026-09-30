@@ -23,6 +23,13 @@ def build_parser() -> argparse.ArgumentParser:
     rm = sub.add_parser("delete", help="delete a session by id (or unique id prefix)")
     rm.add_argument("id")
 
+    ed = sub.add_parser("edit", help="edit a session by id (or unique id prefix)")
+    ed.add_argument("id")
+    ed.add_argument("--subject")
+    ed.add_argument("--minutes")
+    ed.add_argument("--date", help="YYYY-MM-DD")
+    ed.add_argument("--note")
+
     sub.add_parser("stats", help="show totals, streak and weekly progress")
 
     demo = sub.add_parser("demo", help="fill an empty store with sample data for demos")
@@ -78,6 +85,21 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: no unique session matches {args.id!r}", file=sys.stderr)
             return 1
         print(f"deleted {full[:8]}")
+        return 0
+
+    if args.command == "edit":
+        full = _resolve_id(store, args.id)
+        if not full:
+            print(f"error: no unique session matches {args.id!r}", file=sys.stderr)
+            return 1
+        changes = {k: v for k, v in (("subject", args.subject), ("minutes", args.minutes),
+                                     ("date", args.date), ("note", args.note)) if v is not None}
+        try:
+            s = store.update(full, changes)
+        except ValidationError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+        print(f"updated {s.id[:8]}  {s.date}  {s.subject}  {s.minutes} min")
         return 0
 
     if args.command == "stats":

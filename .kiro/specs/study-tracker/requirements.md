@@ -91,3 +91,13 @@ Acceptance criteria:
 1. WHEN the user runs `demo` on an empty store THEN the system SHALL add sample sessions across several subjects over recent days, with gaps, and set a weekly goal.
 2. IF the store already has sessions THEN the system SHALL refuse and change nothing.
 3. IF `--days` is outside 1..60 THEN the system SHALL reject it.
+
+## Requirement 12: Edit a session
+**User story:** As a student, I want to correct a session I logged wrongly, so that I don't have to delete and re-enter it.
+
+Acceptance criteria:
+1. WHEN the user edits any of subject, minutes, date or note on an existing session THEN the system SHALL save the change and keep the same id.
+2. The edited session SHALL pass the same validation as a new session (Requirement 1); IF it fails THEN nothing SHALL change.
+3. IF the id does not exist THEN the system SHALL report "not found".
+4. IF the edit includes any other field, or no fields, THEN the system SHALL reject it.
+5. The CLI `edit` command and an Edit button on the web page SHALL support this.

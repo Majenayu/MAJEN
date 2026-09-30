@@ -38,6 +38,7 @@ File format: `{"version": 1, "sessions": [ ...Session dicts... ], "weekly_goal":
 | GET | /api/sessions?subject= | | `[Session]` (optional case-insensitive subject filter) |
 | GET | /api/subjects | | `[string]` distinct subjects |
 | POST | /api/sessions | `{subject, minutes, date?, note?}` | 201 `Session` / 400 `{error}` |
+| PATCH | /api/sessions/{id} | any of `{subject, minutes, date, note}` | 200 `Session` / 400 / 404 (`Store.update`) |
 | DELETE | /api/sessions/{id} | | 204 / 404 `{error}` |
 | GET | /api/stats | | `{total_minutes, sessions, by_subject, streak, longest_streak, week}` |
 | GET | /api/export.csv | | 200 `text/csv` attachment (`Store.export_csv`) |

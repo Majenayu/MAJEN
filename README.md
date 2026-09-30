@@ -15,6 +15,7 @@ python -m studystreak stats              # includes this week's progress
 python -m studystreak goal 300           # weekly goal in minutes
 python -m studystreak goal --clear
 python -m studystreak export --out sessions.csv   # or omit --out to print
+python -m studystreak edit 02a799f8 --minutes 50 --note "fixed"
 python -m studystreak delete 02a799f8     # id or unique id prefix
 
 # Web UI at http://127.0.0.1:8765

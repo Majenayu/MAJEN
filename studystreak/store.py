@@ -218,6 +218,31 @@ class Store:
             seen.setdefault(s.subject.casefold(), s.subject)
         return sorted(seen.values(), key=str.casefold)
 
+    EDITABLE_FIELDS = ("subject", "minutes", "date", "note")
+
+    def update(self, session_id: str, changes: dict, today: date | None = None) -> Session | None:
+        """Edit fields of an existing session. Returns None if the id is unknown.
+
+        Only keys in EDITABLE_FIELDS are allowed; the merged result is re-validated with
+        the same rules as a new session, and nothing is saved if validation fails.
+        """
+        unknown = set(changes) - set(self.EDITABLE_FIELDS)
+        if unknown:
+            raise ValidationError(f"cannot edit field(s): {', '.join(sorted(unknown))}")
+        if not changes:
+            raise ValidationError("nothing to change")
+        for i, current in enumerate(self.sessions):
+            if current.id != session_id:
+                continue
+            merged = {**asdict(current), **changes}
+            fresh = make_session(merged["subject"], merged["minutes"], merged["date"],
+                                 merged["note"], today=today)
+            fresh.id = current.id
+            self.sessions[i] = fresh
+            self.save()
+            return fresh
+        return None
+
     def delete(self, session_id: str) -> bool:
         before = len(self.sessions)
         self.sessions = [s for s in self.sessions if s.id != session_id]

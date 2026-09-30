@@ -53,7 +53,8 @@
     <label>Minutes <input name="minutes" type="number" min="1" max="1440" required></label>
     <label>Date <input name="date" type="date"></label>
     <label class="wide">Note <input name="note" maxlength="200"></label>
-    <button type="submit">Add</button>
+    <button type="submit" id="add-submit">Add</button>
+    <button type="button" id="cancel-edit" hidden>Cancel edit</button>
   </form>
   <p id="msg" role="alert" aria-live="polite"></p>
 
@@ -123,24 +124,60 @@
     for (const s of sessions) {
       const tr = document.createElement("tr");
       cell(tr, s.date); cell(tr, s.subject); cell(tr, s.minutes); cell(tr, s.note);
+      const actions = cell(tr, "");
+      const edit = document.createElement("button");
+      edit.textContent = "Edit";
+      edit.setAttribute("aria-label", `Edit ${s.subject} on ${s.date}`);
+      edit.onclick = () => startEdit(s);
       const btn = document.createElement("button");
       btn.className = "del"; btn.textContent = "Delete";
       btn.setAttribute("aria-label", `Delete ${s.subject} on ${s.date}`);
-      btn.onclick = async () => { await api("DELETE", "/api/sessions/" + encodeURIComponent(s.id)); refresh(); };
-      cell(tr, "").appendChild(btn);
+      btn.onclick = async () => {
+        await api("DELETE", "/api/sessions/" + encodeURIComponent(s.id));
+        if (editingId === s.id) stopEdit();
+        refresh();
+      };
+      actions.append(edit, " ", btn);
       list.appendChild(tr);
     }
   }
 
+  let editingId = null;
+
+  function startEdit(s) {
+    const form = $("add");
+    editingId = s.id;
+    form.subject.value = s.subject;
+    form.minutes.value = s.minutes;
+    form.date.value = s.date;
+    form.note.value = s.note;
+    $("add-submit").textContent = "Save changes";
+    $("cancel-edit").hidden = false;
+    form.subject.focus();
+  }
+
+  function stopEdit() {
+    editingId = null;
+    $("add").reset();
+    $("add-submit").textContent = "Add";
+    $("cancel-edit").hidden = true;
+  }
+
+  $("cancel-edit").addEventListener("click", stopEdit);
+
   $("add").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const f = new FormData(ev.target);
+    const body = { subject: f.get("subject"), minutes: Number(f.get("minutes")),
+                   date: f.get("date") || null, note: f.get("note") };
     try {
-      await api("POST", "/api/sessions", {
-        subject: f.get("subject"), minutes: Number(f.get("minutes")),
-        date: f.get("date") || null, note: f.get("note") });
+      if (editingId) {
+        await api("PATCH", "/api/sessions/" + encodeURIComponent(editingId), body);
+      } else {
+        await api("POST", "/api/sessions", body);
+      }
       $("msg").textContent = "";
-      ev.target.reset();
+      stopEdit();
       refresh();
     } catch (err) { $("msg").textContent = err.message; }
   });

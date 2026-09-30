@@ -122,6 +122,26 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(len(store.list("")), 3)
         self.assertEqual(store.subjects(), ["Maths", "physics"])
 
+    def test_update_changes_fields_keeps_id_and_persists(self):
+        store = Store(self.path)
+        s = store.add("Maths", 30, "2026-09-25", "old", today=TODAY)
+        updated = store.update(s.id, {"minutes": "45", "note": "fixed"}, today=TODAY)
+        self.assertEqual((updated.id, updated.subject, updated.minutes, updated.note),
+                         (s.id, "Maths", 45, "fixed"))
+        self.assertEqual(Store(self.path).sessions, [updated])
+
+    def test_update_unknown_id_returns_none(self):
+        self.assertIsNone(Store(self.path).update("missing", {"minutes": 5}, today=TODAY))
+
+    def test_update_invalid_leaves_session_unchanged(self):
+        store = Store(self.path)
+        s = store.add("Maths", 30, today=TODAY)
+        for bad in [{"minutes": 0}, {"subject": ""}, {"date": "2026-10-01"},
+                    {"id": "hijack"}, {}]:
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
+                store.update(s.id, bad, today=TODAY)
+        self.assertEqual(Store(self.path).sessions, [s])
+
     def test_delete(self):
         store = Store(self.path)
         s = store.add("A", 10, today=TODAY)
