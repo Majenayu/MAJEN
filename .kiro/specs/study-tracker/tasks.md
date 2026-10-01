@@ -73,3 +73,11 @@
     - _Requirements: 12.1-12.4_
   - [x] 10.3 CLI `edit` and web Edit / Cancel edit buttons
     - _Requirements: 12.5_
+
+- [x] 11. Daily breakdown
+  - [x] 11.1 `Store.daily(days)` zero-filled, validated 1..90, with unit tests
+    - _Requirements: 13.1-13.3_
+  - [x] 11.2 `GET /api/daily?days=` with API tests
+    - _Requirements: 13.1-13.3_
+  - [x] 11.3 CLI `daily` text chart and web "Last 7 days" table chart
+    - _Requirements: 13.4_

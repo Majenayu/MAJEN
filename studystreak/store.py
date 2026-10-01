@@ -14,6 +14,7 @@ MAX_SUBJECT = 60
 MAX_NOTE = 200
 MAX_MINUTES = 1440
 MAX_WEEKLY_GOAL = 7 * 1440
+MAX_DAILY_DAYS = 90
 FILE_VERSION = 1
 
 
@@ -286,6 +287,26 @@ class Store:
         self.weekly_goal = validate_goal(minutes)
         self.save()
         return self.weekly_goal
+
+    def daily(self, days: object = 7, today: date | None = None) -> list[dict]:
+        """Minutes per day for the last `days` days ending today, oldest first.
+
+        Days with no sessions are included with 0 minutes so charts have no gaps.
+        """
+        if isinstance(days, str):
+            try:
+                days = int(days.strip())
+            except ValueError:
+                raise ValidationError("days must be a whole number") from None
+        if isinstance(days, bool) or not isinstance(days, int) or not 1 <= days <= MAX_DAILY_DAYS:
+            raise ValidationError(f"days must be between 1 and {MAX_DAILY_DAYS}")
+        today = today or date.today()
+        start = today - timedelta(days=days - 1)
+        totals = {(start + timedelta(days=i)).isoformat(): 0 for i in range(days)}
+        for s in self.sessions:
+            if s.date in totals:
+                totals[s.date] += s.minutes
+        return [{"date": d, "minutes": m} for d, m in totals.items()]
 
     def week(self, today: date | None = None) -> dict:
         today = today or date.today()

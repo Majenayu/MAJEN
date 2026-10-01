@@ -51,6 +51,14 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
                 subject = parse_qs(url.query).get("subject", [None])[0]
                 with lock:
                     self._json(HTTPStatus.OK, [asdict(s) for s in store.list(subject)])
+            elif path == "/api/daily":
+                days = parse_qs(url.query).get("days", ["7"])[0]
+                try:
+                    with lock:
+                        result = store.daily(days)
+                except ValidationError as exc:
+                    return self._error(HTTPStatus.BAD_REQUEST, str(exc))
+                self._json(HTTPStatus.OK, result)
             elif path == "/api/subjects":
                 with lock:
                     self._json(HTTPStatus.OK, store.subjects())

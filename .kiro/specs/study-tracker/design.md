@@ -36,6 +36,7 @@ File format: `{"version": 1, "sessions": [ ...Session dicts... ], "weekly_goal":
 |---|---|---|---|
 | GET | / | | index.html |
 | GET | /api/sessions?subject= | | `[Session]` (optional case-insensitive subject filter) |
+| GET | /api/daily?days=7 | | `[{date, minutes}]` oldest first, zero-filled, days 1..90 / 400 (`Store.daily`) |
 | GET | /api/subjects | | `[string]` distinct subjects |
 | POST | /api/sessions | `{subject, minutes, date?, note?}` | 201 `Session` / 400 `{error}` |
 | PATCH | /api/sessions/{id} | any of `{subject, minutes, date, note}` | 200 `Session` / 400 / 404 (`Store.update`) |

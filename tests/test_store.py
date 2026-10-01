@@ -198,6 +198,35 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(sorted(cells), sorted(["'=HYPERLINK(\"x\")", "'+cmd", "'-dash", "'@sum"]))
 
 
+class DailyTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.store = Store(Path(self.tmp.name) / "data.json")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_daily_fills_gaps_and_sums(self):
+        self.store.add("Maths", 30, "2026-09-26", today=TODAY)
+        self.store.add("AIML", 15, "2026-09-26", today=TODAY)
+        self.store.add("Maths", 20, "2026-09-24", today=TODAY)
+        self.store.add("Maths", 99, "2026-09-10", today=TODAY)  # outside window
+        self.assertEqual(self.store.daily(3, today=TODAY), [
+            {"date": "2026-09-24", "minutes": 20},
+            {"date": "2026-09-25", "minutes": 0},
+            {"date": "2026-09-26", "minutes": 45},
+        ])
+
+    def test_daily_default_and_string_days(self):
+        self.assertEqual(len(self.store.daily(today=TODAY)), 7)
+        self.assertEqual(len(self.store.daily("14", today=TODAY)), 14)
+
+    def test_daily_rejects_bad_days(self):
+        for bad in [0, 91, "x", True, 2.5]:
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
+                self.store.daily(bad, today=TODAY)
+
+
 class DemoTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

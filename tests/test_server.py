@@ -89,6 +89,13 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(self.request("PATCH", f"/api/sessions/{s['id']}", {"id": "x"})[0], 400)
         self.assertEqual(self.request("PATCH", "/api/sessions/missing", {"minutes": 5})[0], 404)
 
+    def test_daily(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 25})
+        status, rows = self.request("GET", "/api/daily?days=3")
+        self.assertEqual((status, len(rows), rows[-1]["minutes"]), (200, 3, 25))
+        self.assertEqual(len(self.request("GET", "/api/daily")[1]), 7)
+        self.assertEqual(self.request("GET", "/api/daily?days=500")[0], 400)
+
     def test_export_csv(self):
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
         with urllib.request.urlopen(self.base + "/api/export.csv") as res:

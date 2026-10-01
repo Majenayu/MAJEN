@@ -38,6 +38,9 @@ def build_parser() -> argparse.ArgumentParser:
     exp = sub.add_parser("export", help="export sessions as CSV")
     exp.add_argument("--out", help="file to write; prints to stdout if omitted")
 
+    daily = sub.add_parser("daily", help="minutes per day for recent days")
+    daily.add_argument("--days", default="7", help="how many days, 1-90 (default 7)")
+
     goal = sub.add_parser("goal", help="set or clear the weekly goal in minutes")
     grp = goal.add_mutually_exclusive_group(required=True)
     grp.add_argument("minutes", nargs="?")
@@ -135,6 +138,18 @@ def main(argv: list[str] | None = None) -> int:
             print(f"exported {len(store.sessions)} session(s) to {args.out}")
         else:
             sys.stdout.write(text)
+        return 0
+
+    if args.command == "daily":
+        try:
+            rows = store.daily(args.days)
+        except ValidationError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
+        peak = max((r["minutes"] for r in rows), default=0) or 1
+        for r in rows:
+            bar = "#" * round(30 * r["minutes"] / peak)
+            print(f"{r['date']}  {r['minutes']:>5} min  {bar}")
         return 0
 
     if args.command == "goal":

@@ -47,6 +47,13 @@
     <button type="button" id="clear-goal">Clear goal</button>
   </form>
 
+  <h2>Last 7 days</h2>
+  <table class="daily">
+    <caption class="visually-hidden">Minutes studied per day, last 7 days</caption>
+    <thead><tr><th scope="col">Day</th><th scope="col">Minutes</th><th scope="col" style="width:55%"><span class="visually-hidden">Chart</span></th></tr></thead>
+    <tbody id="daily"></tbody>
+  </table>
+
   <h2>Log a session</h2>
   <form id="add">
     <label>Subject <input name="subject" required maxlength="60"></label>
@@ -87,8 +94,23 @@
   async function refresh() {
     const chosen = $("filter").value;
     const q = chosen ? "?subject=" + encodeURIComponent(chosen) : "";
-    const [sessions, stats, subjects] = await Promise.all([
-      api("GET", "/api/sessions" + q), api("GET", "/api/stats"), api("GET", "/api/subjects")]);
+    const [sessions, stats, subjects, daily] = await Promise.all([
+      api("GET", "/api/sessions" + q), api("GET", "/api/stats"), api("GET", "/api/subjects"),
+      api("GET", "/api/daily?days=7")]);
+
+    const dayBody = $("daily"); dayBody.replaceChildren();
+    const peak = Math.max(1, ...daily.map(d => d.minutes));
+    for (const d of daily) {
+      const tr = document.createElement("tr");
+      const label = new Date(d.date + "T00:00").toLocaleDateString(undefined,
+                      { weekday: "short", day: "numeric", month: "short" });
+      cell(tr, label); cell(tr, d.minutes);
+      const bar = document.createElement("div"); bar.className = "bar";
+      bar.style.width = (100 * d.minutes / peak) + "%";
+      bar.setAttribute("aria-hidden", "true");
+      cell(tr, "").appendChild(bar);
+      dayBody.appendChild(tr);
+    }
 
     const sel = $("filter");
     sel.replaceChildren(new Option("All subjects", ""));

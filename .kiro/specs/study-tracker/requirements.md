@@ -101,3 +101,12 @@ Acceptance criteria:
 3. IF the id does not exist THEN the system SHALL report "not found".
 4. IF the edit includes any other field, or no fields, THEN the system SHALL reject it.
 5. The CLI `edit` command and an Edit button on the web page SHALL support this.
+
+## Requirement 13: Daily breakdown
+**User story:** As a student, I want to see how many minutes I studied on each recent day, so that I can spot slow days.
+
+Acceptance criteria:
+1. WHEN the user asks for the last N days THEN the system SHALL return one entry per day ending today, oldest first, with total minutes.
+2. Days without sessions SHALL appear with 0 minutes.
+3. IF N is not a whole number between 1 and 90 THEN the system SHALL reject it. The default SHALL be 7.
+4. The CLI `daily [--days N]` SHALL print a text bar chart; the web page SHALL show the last 7 days as a chart with the numbers readable as text.
