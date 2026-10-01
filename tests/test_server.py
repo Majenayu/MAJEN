@@ -67,6 +67,19 @@ class ServerTests(unittest.TestCase):
         big = {"subject": "M", "minutes": 5, "note": "x" * 20000}
         self.assertEqual(self.request("POST", "/api/sessions", big)[0], 400)
 
+    def test_subject_summary(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 40})
+        status, body = self.request("GET", "/api/subjects/Maths")
+        self.assertEqual(status, 200)
+        self.assertEqual((body["subject"], body["total_minutes"], body["sessions"]), ("Maths", 60, 2))
+        self.assertAlmostEqual(body["average_minutes"], 30.0)
+        self.assertIn("streak", body)
+        self.assertEqual(self.request("GET", "/api/subjects/Unknown")[0], 404)
+        # case-insensitive
+        status2, body2 = self.request("GET", "/api/subjects/maths")
+        self.assertEqual((status2, body2["total_minutes"]), (200, 60))
+
     def test_filter_sessions_and_subjects(self):
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
         self.request("POST", "/api/sessions", {"subject": "AI ML", "minutes": 30})

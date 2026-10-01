@@ -122,6 +122,18 @@ class StoreTests(unittest.TestCase):
         store.add("B", 10, "2026-09-25", today=TODAY)
         self.assertEqual([s.subject for s in store.list()], ["B", "A"])
 
+    def test_subject_summary(self):
+        store = Store(self.path)
+        store.add("Maths", 30, "2026-09-20", today=TODAY)
+        store.add("maths", 20, "2026-09-21", today=TODAY)
+        store.add("Physics", 40, "2026-09-21", today=TODAY)
+        sm = store.subject_summary("MATHS", today=TODAY)
+        self.assertEqual(sm["subject"], "Maths")
+        self.assertEqual((sm["total_minutes"], sm["sessions"]), (50, 2))
+        self.assertEqual(sm["average_minutes"], 25.0)
+        self.assertEqual((sm["first_date"], sm["last_date"]), ("2026-09-20", "2026-09-21"))
+        self.assertIsNone(store.subject_summary("Chemistry", today=TODAY))
+
     def test_filter_by_subject_and_subjects(self):
         store = Store(self.path)
         store.add("Maths", 10, "2026-09-20", today=TODAY)

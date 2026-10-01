@@ -8,6 +8,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
+import urllib.parse
 
 from .store import Store, ValidationError
 
@@ -62,6 +63,13 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
             elif path == "/api/subjects":
                 with lock:
                     self._json(HTTPStatus.OK, store.subjects())
+            elif path.startswith("/api/subjects/") and len(path) > len("/api/subjects/"):
+                name = urllib.parse.unquote(path[len("/api/subjects/"):])
+                with lock:
+                    result = store.subject_summary(name)
+                if result is None:
+                    return self._error(HTTPStatus.NOT_FOUND, f"subject {name!r} not found")
+                self._json(HTTPStatus.OK, result)
             elif path == "/api/export.csv":
                 with lock:
                     body = store.export_csv().encode("utf-8")

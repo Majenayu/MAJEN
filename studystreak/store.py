@@ -307,6 +307,26 @@ class Store:
         self.save()
         return self.weekly_goal
 
+    def subject_summary(self, subject: str, today: date | None = None) -> dict | None:
+        """Return stats for one subject (case-insensitive). None if no sessions match."""
+        today = today or date.today()
+        key = subject.strip().casefold()
+        sessions = [s for s in self.sessions if s.subject.casefold() == key]
+        if not sessions:
+            return None
+        dates = {date.fromisoformat(s.date) for s in sessions}
+        total = sum(s.minutes for s in sessions)
+        return {
+            "subject": sessions[0].subject,
+            "total_minutes": total,
+            "sessions": len(sessions),
+            "average_minutes": round(total / len(sessions), 1),
+            "streak": compute_streak(dates, today),
+            "longest_streak": compute_longest_streak(dates),
+            "first_date": min(s.date for s in sessions),
+            "last_date": max(s.date for s in sessions),
+        }
+
     def daily(self, days: object = 7, today: date | None = None) -> list[dict]:
         """Minutes per day for the last `days` days ending today, oldest first.
 

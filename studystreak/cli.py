@@ -32,7 +32,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("stats", help="show totals, streak and weekly progress")
 
-    demo = sub.add_parser("demo", help="fill an empty store with sample data for demos")
+    sub = sub.add_parser("subject", help="show a summary for one subject")
+    sub.add_argument("name")
+
+    sub = sub.add_parser("demo", help="fill an empty store with sample data for demos")
     demo.add_argument("--days", type=int, default=14)
 
     exp = sub.add_parser("export", help="export sessions as CSV")
@@ -116,6 +119,21 @@ def main(argv: list[str] | None = None) -> int:
             print(f"this week: {wk['minutes']} min (no goal set)")
         for e in st["by_subject"]:
             print(f"  {e['subject']:<20} {e['minutes']:>5} min")
+        return 0
+
+    if args.command == "subject":
+        sm = store.subject_summary(args.name)
+        if sm is None:
+            print(f"no sessions for {args.name!r}", file=sys.stderr)
+            return 1
+        print(f"subject:        {sm['subject']}")
+        print(f"sessions:       {sm['sessions']}")
+        print(f"total minutes:  {sm['total_minutes']}")
+        print(f"average/session:{sm['average_minutes']:.1f} min")
+        print(f"streak:         {sm['streak']} day(s)")
+        print(f"longest streak: {sm['longest_streak']} day(s)")
+        print(f"first session:  {sm['first_date']}")
+        print(f"last session:   {sm['last_date']}")
         return 0
 
     if args.command == "demo":
