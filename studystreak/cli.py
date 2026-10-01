@@ -32,10 +32,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("stats", help="show totals, streak and weekly progress")
 
-    sub = sub.add_parser("subject", help="show a summary for one subject")
-    sub.add_argument("name")
+    subject_p = sub.add_parser("subject", help="show a summary for one subject")
+    subject_p.add_argument("name")
 
-    sub = sub.add_parser("demo", help="fill an empty store with sample data for demos")
+    demo = sub.add_parser("demo", help="fill an empty store with sample data for demos")
     demo.add_argument("--days", type=int, default=14)
 
     exp = sub.add_parser("export", help="export sessions as CSV")
@@ -125,8 +125,7 @@ def main(argv: list[str] | None = None) -> int:
         sm = store.subject_summary(args.name)
         if sm is None:
             print(f"no sessions for {args.name!r}", file=sys.stderr)
-            return 1
-        print(f"subject:        {sm['subject']}")
+            return 1        print(f"subject:        {sm['subject']}")
         print(f"sessions:       {sm['sessions']}")
         print(f"total minutes:  {sm['total_minutes']}")
         print(f"average/session:{sm['average_minutes']:.1f} min")
