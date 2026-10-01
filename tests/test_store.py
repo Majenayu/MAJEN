@@ -1,3 +1,4 @@
+import io
 import json
 import tempfile
 import unittest
@@ -41,6 +42,15 @@ class MakeSessionTests(unittest.TestCase):
         for bad in ["2026-13-01", "yesterday", "2026-09-27", 20260926]:
             with self.subTest(bad=bad), self.assertRaises(ValidationError):
                 make_session("Maths", 10, bad, today=TODAY)
+
+    def test_control_characters(self):
+        for bad in ["Ma\x00ths", "Maths\x07", "Ma\nths"]:
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
+                make_session(bad, 10, today=TODAY)
+        with self.assertRaises(ValidationError):
+            make_session("Maths", 10, note="bell\x07", today=TODAY)
+        self.assertEqual(make_session("Maths", 10, note="line1\nline2\tx", today=TODAY).note,
+                         "line1\nline2\tx")
 
     def test_rejects_long_note(self):
         with self.assertRaises(ValidationError):
@@ -196,6 +206,19 @@ class ExportTests(unittest.TestCase):
         self.store.add("-dash", 10, note="@sum", today=TODAY)
         cells = [c for row in self.rows()[1:] for c in row[1:4:2]]
         self.assertEqual(sorted(cells), sorted(["'=HYPERLINK(\"x\")", "'+cmd", "'-dash", "'@sum"]))
+
+    def test_carriage_return_in_note_stays_in_one_row(self):
+        # Regression found by property test P12.
+        import csv as _csv
+        self.store.add("Maths", 10, note="a\rb", today=TODAY)
+        rows = list(_csv.reader(io.StringIO(self.store.export_csv(), newline="")))
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(rows[1][3], "a\rb")
+
+    def test_legacy_nul_is_dropped_on_export(self):
+        from studystreak.store import Session
+        self.store.sessions.append(Session("abc", "Ma\x00ths", 10, "2026-09-20", ""))
+        self.assertIn(",Maths,10,", self.store.export_csv())
 
 
 class DailyTests(unittest.TestCase):

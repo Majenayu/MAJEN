@@ -5,6 +5,7 @@ import csv
 import io
 import json
 import os
+import unicodedata
 import uuid
 from dataclasses import asdict, dataclass
 from datetime import date, timedelta
@@ -40,6 +41,13 @@ def default_path() -> Path:
     return Path(env) if env else Path.home() / ".studystreak" / "data.json"
 
 
+NOTE_ALLOWED_CONTROLS = frozenset("\t\n\r")
+
+
+def _has_control_chars(text: str, allowed: frozenset[str] = frozenset()) -> bool:
+    return any(unicodedata.category(ch) == "Cc" and ch not in allowed for ch in text)
+
+
 def _parse_date(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -62,6 +70,8 @@ def make_session(
     subject = subject.strip()
     if len(subject) > MAX_SUBJECT:
         raise ValidationError(f"subject must be at most {MAX_SUBJECT} characters")
+    if _has_control_chars(subject):
+        raise ValidationError("subject must not contain control characters")
 
     # bool is a subclass of int; reject it explicitly.
     if isinstance(minutes, bool):
@@ -92,6 +102,8 @@ def make_session(
     note = note.strip()
     if len(note) > MAX_NOTE:
         raise ValidationError(f"note must be at most {MAX_NOTE} characters")
+    if _has_control_chars(note, NOTE_ALLOWED_CONTROLS):
+        raise ValidationError("note must not contain control characters other than tab or newline")
 
     return Session(id=uuid.uuid4().hex, subject=subject, minutes=minutes,
                    date=day.isoformat(), note=note)
@@ -128,14 +140,21 @@ _FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
 
 
 def _csv_safe(value: str) -> str:
-    """Neutralise spreadsheet formula injection by prefixing risky cells with a quote."""
+    """Neutralise spreadsheet formula injection by prefixing risky cells with a quote.
+
+    NUL cannot be written by the csv module; validation rejects it, and it is also
+    dropped here so data saved by older versions still exports.
+    """
+    value = value.replace("\x00", "")
     return "'" + value if value.startswith(_FORMULA_PREFIXES) else value
 
 
 def sessions_to_csv(sessions: list[Session]) -> str:
     """Render sessions as CSV text with a header row."""
     buf = io.StringIO()
-    writer = csv.writer(buf, lineterminator="\n")
+    # "\r\n" (the CSV standard) makes the writer quote any field containing \r or \n;
+    # with "\n" alone a bare \r in a note was left unquoted and split the row.
+    writer = csv.writer(buf, lineterminator="\r\n")
     writer.writerow(CSV_FIELDS)
     for s in sessions:
         writer.writerow([s.date, _csv_safe(s.subject), s.minutes, _csv_safe(s.note), s.id])

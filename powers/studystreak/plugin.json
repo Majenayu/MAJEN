@@ -1,0 +1,11 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "studystreak",
+  "version": "1.0.0",
+  "description": "Log study sessions, check streaks and weekly goals, and get study coaching from Kiro, backed by the StudyStreak MCP server.",
+  "author": { "name": "Majenayu", "url": "https://github.com/Majenayu" },
+  "homepage": "https://github.com/Majenayu/MAJEN",
+  "repository": "https://github.com/Majenayu/MAJEN",
+  "license": "MIT",
+  "keywords": ["studystreak", "study session", "study streak", "log study", "weekly study goal", "study tracker"]
+}

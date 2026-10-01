@@ -1,4 +1,7 @@
 __pycache__/
+.hypothesis/
+*.egg-info/
+build/
 *.pyc
 *.tmp
 .venv/

@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Spec check on task completion",
+      "trigger": "PostTaskExec",
+      "description": "After a spec task is marked done, ask the agent to confirm tests and spec docs were updated.",
+      "action": {
+        "type": "agent",
+        "prompt": "A StudyStreak spec task was just completed. Before moving on: (1) run `python -m unittest discover -s tests -t .` and report the result, (2) confirm any new behaviour is in requirements.md with acceptance criteria, (3) confirm design.md lists any new API route, MCP tool or correctness property. Fix gaps before starting the next task."
+      }
+    }
+  ]
+}

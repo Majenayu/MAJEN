@@ -81,3 +81,20 @@
     - _Requirements: 13.1-13.3_
   - [x] 11.3 CLI `daily` text chart and web "Last 7 days" table chart
     - _Requirements: 13.4_
+
+- [x] 12. Property-based tests
+  - [x] 12.1 Correctness properties P1-P12 in design.md, linked to requirements
+    - _Requirements: 15.1_
+  - [x] 12.2 `tests/test_properties.py` with Hypothesis (dev dependency, pinned)
+  - [x] 12.3 Fix bugs found by P12 (CR in CSV, NUL crash) and add control-character validation
+    - _Requirements: 1.7, 8.2_
+
+- [x] 13. MCP server, power and agent
+  - [x] 13.1 `studystreak/mcp_server.py` with five tools and stdio transport
+    - _Requirements: 14.1-14.3_
+  - [x] 13.2 Handler and end-to-end stdio tests in `tests/test_mcp_server.py`
+  - [x] 13.3 `pyproject.toml` with `studystreak-mcp` console script
+  - [x] 13.4 Power package in `powers/studystreak/` (manifest, mcp.json, skill, steering)
+    - _Requirements: 14.4_
+  - [x] 13.5 `study-coach` custom agent with read-only tools pre-approved
+    - _Requirements: 14.4, 14.5_

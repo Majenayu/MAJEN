@@ -137,7 +137,8 @@ def main(argv: list[str] | None = None) -> int:
                 fh.write(text)
             print(f"exported {len(store.sessions)} session(s) to {args.out}")
         else:
-            sys.stdout.write(text)
+            # stdout is in text mode and translates "\n" itself; avoid "\r\r\n".
+            sys.stdout.write(text.replace("\r\n", "\n"))
         return 0
 
     if args.command == "daily":

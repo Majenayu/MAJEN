@@ -1,12 +1,15 @@
 # StudyStreak
 
-A small, local-first study-session tracker. Log what you studied and for how long,
-then see totals per subject and your daily streak, from a CLI or a local web page.
-Python 3.10+, standard library only.
+A small, local-first study-session tracker. Log what you studied and for how long, then see
+totals per subject, your daily and longest streak, weekly goal progress and a 7-day chart.
+Use it from a CLI, a local web page, or by chatting with Kiro through its MCP server.
+The app is Python 3.10+, standard library only.
 
 ## Run
 
 ```powershell
+pip install -e .                 # optional: adds `studystreak` and `studystreak-mcp` commands
+
 # CLI
 python -m studystreak add "Maths" 45 --note "calculus"
 python -m studystreak add "Physics" 30 --date 2026-09-25
@@ -36,22 +39,51 @@ python -m studystreak serve
 Data lives in `~/.studystreak/data.json`, or wherever `STUDYSTREAK_DATA` points.
 The web server binds to 127.0.0.1 only and has no authentication, so don't expose it.
 
+## Use it from Kiro (MCP)
+
+`studystreak-mcp` is an MCP server over stdio with five tools: `log_session`,
+`list_sessions`, `get_stats`, `daily_breakdown` and `set_weekly_goal`. It reads and
+writes the same data file as the CLI and web UI. Workspace config, `.kiro/settings/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "studystreak": {
+      "command": "python",
+      "args": ["-m", "studystreak.mcp_server"],
+      "autoApprove": ["get_stats", "list_sessions", "daily_breakdown"]
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "."],
+      "autoApprove": ["git_status", "git_log", "git_diff_unstaged", "git_diff_staged", "git_show"]
+    }
+  }
+}
+```
+
+Or install the packaged power in `powers/studystreak/` (see its README).
+
 ## Test
 
 ```powershell
+pip install -r requirements-dev.txt     # Hypothesis, for property-based tests
 python -m unittest discover -s tests -t . -v
 ```
 
 ## How Kiro was used
 
-| Feature | Where |
+| Lesson | Where |
 |---|---|
-| Steering | `.kiro/steering/` product, tech and structure rules (always + fileMatch) |
-| Spec | `.kiro/specs/study-tracker/` requirements, design, tasks |
-| Hooks | `.kiro/hooks/run-tests-on-save.json` runs tests on every `.py` save |
-| MCP | `.kiro/settings/mcp.json` git server (`uvx mcp-server-git`), used by the reviewer agent |
-| Custom agent | `.kiro/agents/code-reviewer.md` read-only reviewer |
-| Skill | `.kiro/skills/add-api-endpoint/` repeatable workflow for new routes |
+| 1. Spec-driven development | `.kiro/specs/study-tracker/` 15 requirements, design, task list built in order |
+| 2. Steering | `.kiro/steering/` product, tech (always) and structure (fileMatch) |
+| 3. Hooks | `.kiro/hooks/run-tests-on-save.json` runs the suite on every `.py` save |
+| 4. Property-based testing | `tests/test_properties.py`, 13 properties linked to requirements in design.md; found 2 real CSV bugs |
+| 5. Powers | `powers/studystreak/` installed in Kiro and used to log sessions by chat |
+| 6. MCP | `studystreak/mcp_server.py` (own server) + `git` server in `.kiro/settings/mcp.json` |
+| 7. Custom agents | `.kiro/agents/code-reviewer.md` (read-only + git MCP) and `.kiro/agents/study-coach.md` (StudyStreak tools only, read tools pre-approved) |
+| Bonus 2. Package a power | `powers/studystreak/` plugin.json, mcp.json, skill, steering |
+| Extra | `.kiro/skills/add-api-endpoint/` workflow skill |
 
 ## Daily commit reminder
 

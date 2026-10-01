@@ -4,11 +4,11 @@
     {
       "name": "Run tests on save",
       "trigger": "PostFileSave",
-      "description": "Runs the StudyStreak unittest suite whenever a Python file is saved.",
+      "description": "Runs the fast example tests on every Python save. The slower property tests run with the full suite.",
       "matcher": "\\.py$",
       "action": {
         "type": "command",
-        "command": "python -m unittest discover -s tests -t . -q",
+        "command": "python -m unittest tests.test_store tests.test_server tests.test_mcp_server -q",
         "timeout": 60
       }
     }

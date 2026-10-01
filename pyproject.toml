@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "studystreak"
+dynamic = ["version"]
+description = "Local-first study-session tracker with a CLI, web UI and MCP server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []   # standard library only
+
+[project.optional-dependencies]
+dev = ["hypothesis==6.168.3"]
+
+[project.scripts]
+studystreak = "studystreak.cli:main"
+studystreak-mcp = "studystreak.mcp_server:main"
+
+[tool.setuptools]
+packages = ["studystreak"]
+
+[tool.setuptools.package-data]
+studystreak = ["static/*.html"]
+
+[tool.setuptools.dynamic]
+version = { attr = "studystreak.__version__" }

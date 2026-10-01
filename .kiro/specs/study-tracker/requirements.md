@@ -14,6 +14,7 @@ Acceptance criteria:
 4. IF the subject is longer than 60 characters or the note longer than 200 characters THEN the system SHALL reject it.
 5. IF minutes is not an integer between 1 and 1440 THEN the system SHALL reject it.
 6. IF the date is invalid or in the future THEN the system SHALL reject it.
+7. IF the subject contains any control character, or the note contains one other than tab, newline or carriage return, THEN the system SHALL reject it.
 
 ## Requirement 2: View sessions
 **User story:** As a student, I want to list my sessions, so that I can review what I did.
@@ -110,3 +111,16 @@ Acceptance criteria:
 2. Days without sessions SHALL appear with 0 minutes.
 3. IF N is not a whole number between 1 and 90 THEN the system SHALL reject it. The default SHALL be 7.
 4. The CLI `daily [--days N]` SHALL print a text bar chart; the web page SHALL show the last 7 days as a chart with the numbers readable as text.
+
+## Requirement 14: Kiro integration over MCP
+**User story:** As a student using Kiro, I want to log and review study sessions by chatting, so that tracking happens where I already work.
+
+Acceptance criteria:
+1. The system SHALL provide an MCP server over stdio exposing `log_session`, `list_sessions`, `get_stats`, `daily_breakdown` and `set_weekly_goal`.
+2. Each tool SHALL apply the same validation as the CLI and web UI and use the same data file.
+3. IF a tool call fails validation or has unexpected arguments THEN the server SHALL return a tool error with the message instead of crashing.
+4. The project SHALL package the server as a Kiro power with activation keywords, a skill and steering, and SHALL provide a custom agent restricted to the StudyStreak tools.
+5. Read-only tools SHALL be pre-approved; tools that change data SHALL require the user's approval.
+
+## Requirement 15: Correctness properties
+1. The behaviour in Requirements 1-13 SHALL be checked by property-based tests that generate random inputs, each linked to the requirement it validates.
