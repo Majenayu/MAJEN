@@ -125,7 +125,8 @@ def main(argv: list[str] | None = None) -> int:
         sm = store.subject_summary(args.name)
         if sm is None:
             print(f"no sessions for {args.name!r}", file=sys.stderr)
-            return 1        print(f"subject:        {sm['subject']}")
+            return 1
+        print(f"subject:        {sm['subject']}")
         print(f"sessions:       {sm['sessions']}")
         print(f"total minutes:  {sm['total_minutes']}")
         print(f"average/session:{sm['average_minutes']:.1f} min")
