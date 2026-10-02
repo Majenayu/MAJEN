@@ -49,6 +49,8 @@ def build_parser() -> argparse.ArgumentParser:
     grp.add_argument("minutes", nargs="?")
     grp.add_argument("--clear", action="store_true")
 
+    sub.add_parser("summary", help="a combined overview of your study activity")
+
     srv = sub.add_parser("serve", help="run the local web UI")
     srv.add_argument("--port", type=int, default=8765)
     return p
@@ -178,6 +180,21 @@ def main(argv: list[str] | None = None) -> int:
             print(f"error: {exc}", file=sys.stderr)
             return 2
         print(f"weekly goal set to {g} min" if g else "weekly goal cleared")
+        return 0
+
+    if args.command == "summary":
+        ov = store.overview()
+        wk = ov["week"]
+        goal = f"{wk['minutes']}/{wk['goal']} min ({wk['percent']}%)" if wk["goal"] else f"{wk['minutes']} min (no goal)"
+        print(f"StudyStreak overview ({ov['generated']})")
+        print(f"  total:    {ov['total_minutes']} min over {ov['sessions']} session(s)")
+        print(f"  streak:   {ov['streak']} day(s) (best {ov['longest_streak']})")
+        print(f"  week:     {goal}")
+        if ov["top_subjects"]:
+            tops = ", ".join(f"{e['subject']} {e['minutes']}m" for e in ov["top_subjects"])
+            print(f"  top:      {tops}")
+        active = sum(1 for d in ov["recent_days"] if d["minutes"] > 0)
+        print(f"  last 7d:  active on {active}/7 days")
         return 0
 
     if args.command == "serve":

@@ -307,6 +307,21 @@ class Store:
         self.save()
         return self.weekly_goal
 
+    def overview(self, today: date | None = None) -> dict:
+        """A combined report: headline stats, this week, top subjects, and recent 7 days."""
+        today = today or date.today()
+        st = self.stats(today)
+        return {
+            "generated": today.isoformat(),
+            "total_minutes": st["total_minutes"],
+            "sessions": st["sessions"],
+            "streak": st["streak"],
+            "longest_streak": st["longest_streak"],
+            "week": st["week"],
+            "top_subjects": st["by_subject"][:3],
+            "recent_days": self.daily(7, today),
+        }
+
     def subject_summary(self, subject: str, today: date | None = None) -> dict | None:
         """Return stats for one subject (case-insensitive). None if no sessions match."""
         today = today or date.today()

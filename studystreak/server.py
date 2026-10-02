@@ -79,6 +79,9 @@ def make_handler(store: Store) -> type[BaseHTTPRequestHandler]:
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
+            elif path == "/api/overview":
+                with lock:
+                    self._json(HTTPStatus.OK, store.overview())
             elif path == "/api/stats":
                 with lock:
                     self._json(HTTPStatus.OK, store.stats())

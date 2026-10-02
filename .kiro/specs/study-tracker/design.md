@@ -44,6 +44,7 @@ File format: `{"version": 1, "sessions": [ ...Session dicts... ], "weekly_goal":
 | PATCH | /api/sessions/{id} | any of `{subject, minutes, date, note}` | 200 `Session` / 400 / 404 (`Store.update`) |
 | DELETE | /api/sessions/{id} | | 204 / 404 `{error}` |
 | GET | /api/stats | | `{total_minutes, sessions, by_subject, streak, longest_streak, week}` |
+| GET | /api/overview | | `{generated, total_minutes, sessions, streak, longest_streak, week, top_subjects, recent_days}` (`Store.overview`) |
 | GET | /api/export.csv | | 200 `text/csv` attachment (`Store.export_csv`) |
 | PUT | /api/goal | `{minutes: int \| null}` | 200 `{weekly_goal}` / 400 `{error}` |
 

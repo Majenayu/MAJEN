@@ -67,6 +67,15 @@ class ServerTests(unittest.TestCase):
         big = {"subject": "M", "minutes": 5, "note": "x" * 20000}
         self.assertEqual(self.request("POST", "/api/sessions", big)[0], 400)
 
+    def test_overview(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 50})
+        status, body = self.request("GET", "/api/overview")
+        self.assertEqual(status, 200)
+        self.assertEqual(body["total_minutes"], 50)
+        self.assertEqual(len(body["recent_days"]), 7)
+        self.assertTrue(len(body["top_subjects"]) <= 3)
+        self.assertIn("week", body)
+
     def test_subject_summary(self):
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 20})
         self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 40})
