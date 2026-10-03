@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "studystreak": {
+      "command": "python",
+      "args": ["-m", "studystreak.mcp_server"],
+      "autoApprove": ["get_stats", "list_sessions", "daily_breakdown"]
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "."],
+      "autoApprove": ["git_status", "git_log", "git_diff_unstaged", "git_diff_staged", "git_show"]
+    }
+  }
+}
