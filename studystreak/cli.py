@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from .store import Store, StoreError, ValidationError
@@ -30,7 +31,8 @@ def build_parser() -> argparse.ArgumentParser:
     ed.add_argument("--date", help="YYYY-MM-DD")
     ed.add_argument("--note")
 
-    sub.add_parser("stats", help="show totals, streak and weekly progress")
+    stats_p = sub.add_parser("stats", help="show totals, streak and weekly progress")
+    stats_p.add_argument("--json", action="store_true", help="print raw JSON instead of text")
 
     subject_p = sub.add_parser("subject", help="show a summary for one subject")
     subject_p.add_argument("name")
@@ -49,7 +51,8 @@ def build_parser() -> argparse.ArgumentParser:
     grp.add_argument("minutes", nargs="?")
     grp.add_argument("--clear", action="store_true")
 
-    sub.add_parser("summary", help="a combined overview of your study activity")
+    summary_p = sub.add_parser("summary", help="a combined overview of your study activity")
+    summary_p.add_argument("--json", action="store_true", help="print raw JSON instead of text")
 
     srv = sub.add_parser("serve", help="run the local web UI")
     srv.add_argument("--port", type=int, default=8765)
@@ -112,6 +115,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "stats":
         st = store.stats()
+        if args.json:
+            print(json.dumps(st, indent=2))
+            return 0
         print(f"total: {st['total_minutes']} min across {st['sessions']} sessions")
         print(f"streak: {st['streak']} day(s)  (longest: {st['longest_streak']})")
         wk = st["week"]
@@ -184,6 +190,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "summary":
         ov = store.overview()
+        if args.json:
+            print(json.dumps(ov, indent=2))
+            return 0
         wk = ov["week"]
         goal = f"{wk['minutes']}/{wk['goal']} min ({wk['percent']}%)" if wk["goal"] else f"{wk['minutes']} min (no goal)"
         print(f"StudyStreak overview ({ov['generated']})")

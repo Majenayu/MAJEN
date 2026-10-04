@@ -15,6 +15,7 @@ python -m studystreak add "Maths" 45 --note "calculus"
 python -m studystreak add "Physics" 30 --date 2026-09-25
 python -m studystreak subject "Maths"     # detailed stats for one subject
 python -m studystreak summary             # one-screen overview of everything
+python -m studystreak summary --json      # same data as JSON (also: stats --json)
 python -m studystreak stats              # includes this week's progress
 python -m studystreak daily --days 7     # minutes per day, text bar chart
 python -m studystreak goal 300           # weekly goal in minutes
