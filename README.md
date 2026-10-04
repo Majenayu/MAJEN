@@ -73,6 +73,17 @@ pip install -r requirements-dev.txt     # Hypothesis, for property-based tests
 python -m unittest discover -s tests -t . -v
 ```
 
+## Troubleshooting
+
+- **The `studystreak` MCP server shows as failed in Kiro.** Run `pip install -e .` in this
+  folder first so the `studystreak` package is importable, then reconnect the server.
+- **Demo data mixed with my real sessions.** The `demo` command only runs on an empty store.
+  Point `STUDYSTREAK_DATA` at a separate file before running it, e.g.
+  `$env:STUDYSTREAK_DATA = "$env:TEMP\studystreak-demo.json"`.
+- **`git push` prints progress as red error text in PowerShell.** That is PowerShell flagging
+  git's normal stderr output; the push still succeeds. Check with `git status` (should say
+  your branch is up to date).
+
 ## How Kiro was used
 
 | Lesson | Where |
