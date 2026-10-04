@@ -42,6 +42,13 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn("StudyStreak", body)
         self.assertNotIn(".innerHTML", body)  # no HTML injection sinks
+        self.assertIn('id="range"', body)  # daily-range selector present
+
+    def test_daily_range_values(self):
+        self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 10})
+        for days in (7, 14, 30):
+            status, rows = self.request("GET", f"/api/daily?days={days}")
+            self.assertEqual((status, len(rows)), (200, days))
 
     def test_add_list_stats_delete(self):
         status, s = self.request("POST", "/api/sessions", {"subject": "Maths", "minutes": 25})

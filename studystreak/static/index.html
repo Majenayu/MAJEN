@@ -47,9 +47,16 @@
     <button type="button" id="clear-goal">Clear goal</button>
   </form>
 
-  <h2>Last 7 days</h2>
+  <h2>Daily activity</h2>
+  <label>Show
+    <select id="range">
+      <option value="7" selected>last 7 days</option>
+      <option value="14">last 14 days</option>
+      <option value="30">last 30 days</option>
+    </select>
+  </label>
   <table class="daily">
-    <caption class="visually-hidden">Minutes studied per day, last 7 days</caption>
+    <caption class="visually-hidden">Minutes studied per day</caption>
     <thead><tr><th scope="col">Day</th><th scope="col">Minutes</th><th scope="col" style="width:55%"><span class="visually-hidden">Chart</span></th></tr></thead>
     <tbody id="daily"></tbody>
   </table>
@@ -96,7 +103,7 @@
     const q = chosen ? "?subject=" + encodeURIComponent(chosen) : "";
     const [sessions, stats, subjects, daily] = await Promise.all([
       api("GET", "/api/sessions" + q), api("GET", "/api/stats"), api("GET", "/api/subjects"),
-      api("GET", "/api/daily?days=7")]);
+      api("GET", "/api/daily?days=" + encodeURIComponent($("range").value))]);
 
     const dayBody = $("daily"); dayBody.replaceChildren();
     const peak = Math.max(1, ...daily.map(d => d.minutes));
@@ -219,7 +226,9 @@
     setGoal(Number(v));
   });
   $("clear-goal").addEventListener("click", () => setGoal(null));
-  $("filter").addEventListener("change", () => refresh().catch(err => { $("msg").textContent = err.message; }));
+  const refreshOnChange = () => refresh().catch(err => { $("msg").textContent = err.message; });
+  $("filter").addEventListener("change", refreshOnChange);
+  $("range").addEventListener("change", refreshOnChange);
 
   refresh().catch(err => { $("msg").textContent = err.message; });
 </script>
