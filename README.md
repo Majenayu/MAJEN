@@ -102,3 +102,6 @@ python -m unittest discover -s tests -t . -v
 
 `scripts/commit-reminder.ps1` pops up a reminder at 20:00 if you haven't committed today.
 It never commits for you, and it stops after the submission date.
+
+
+.
