@@ -5,7 +5,7 @@ totals per subject, your daily and longest streak, weekly goal progress and a 7-
 Use it from a CLI, a local web page, or by chatting with Kiro through its MCP server.
 The app is Python 3.10+, standard library only.
 
-## Run
+## Run 
 
 ```powershell
 pip install -e .                 # optional: adds `studystreak` and `studystreak-mcp` commands
