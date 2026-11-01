@@ -73,6 +73,30 @@ pip install -r requirements-dev.txt     # Hypothesis, for property-based tests
 python -m unittest discover -s tests -t . -v
 ```
 
+## Architecture and storage
+
+```text
+CLI / local web UI / MCP stdio server
+                  │
+                  ▼
+          studystreak.store.Store
+                  │
+                  ▼
+       local JSON data file + CSV export
+```
+
+All interfaces share the same `Store`, validation rules, streak calculations, and
+`STUDYSTREAK_DATA` location. The package has no runtime third-party dependencies;
+Hypothesis is only installed for the development/property-test suite.
+
+## Limitations
+
+- The web server binds to `127.0.0.1` and has no authentication by design.
+- Data is a single local JSON file; there is no synchronization, multi-user access, or
+  hosted database.
+- Dates and streaks are calculated from the stored calendar dates, not a timezone-aware
+  event stream.
+
 ## Troubleshooting
 
 - **The `studystreak` MCP server shows as failed in Kiro.** Run `pip install -e .` in this
